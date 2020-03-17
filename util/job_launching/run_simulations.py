@@ -63,7 +63,8 @@ class ConfigurationSpec:
                 self.setup_run_directory(full_data_dir, this_run_dir, data_dir, appargs_run_subdir)
 
                 self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle)
-                self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
+                if not options.run_sst:
+                    self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
 
                 # Submit the job to torque and dump the output to a file
                 if not options.no_launch:
@@ -124,7 +125,9 @@ class ConfigurationSpec:
             os.makedirs(this_run_dir)
 
         if options.run_sst:
-            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*"))
+            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.cfg")) +\
+                                       glob.glob(os.path.join(full_data_dir, "*.config")) +\
+                                       glob.glob(os.path.join(full_data_dir, "*.py"))
         else:
             files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
                                        glob.glob(os.path.join(full_data_dir, "*.cl")) +\
@@ -138,6 +141,10 @@ class ConfigurationSpec:
             if os.path.isfile(new_file):
                 os.remove(new_file)
             shutil.copyfile(file_to_cp,new_file)
+
+        # link the executable directory
+        #if options.run_sst:
+
 
         # link the data directory
         benchmark_data_dir = os.path.join(full_data_dir, "data")

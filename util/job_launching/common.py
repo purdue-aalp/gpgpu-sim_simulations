@@ -136,6 +136,8 @@ def dir_option_test(name, default, this_directory):
 
 def parse_run_simulations_options():
     parser = OptionParser()
+    parser.add_option("-S", "--sst", dest="run_sst", action="store_true",
+                  help="indicate if we are running kokkos using sst")
     parser.add_option("-B", "--benchmark_list", dest="benchmark_list",
                   help="a comma seperated list of benchmark suites to run. See apps/define-*.yml for " +\
                         "the benchmark suite names.",
@@ -170,7 +172,7 @@ def parse_run_simulations_options():
                         " The directory passed should be the root of all the trace files.")
     parser.add_option("-M", "--job_mem", dest="job_mem", default="",
                   help="Memory usgae of the job in MB.")
-						
+
     (options, args) = parser.parse_args()
     # Parser seems to leave some whitespace on the options, getting rid of it
     if options.trace_dir != "":

@@ -22,6 +22,7 @@ def extract_version( exec_path ):
     returnStr = re.sub( r".*(gpgpu-sim_git-commit[^\s]+).*", r"\1", objdump_out_file.read().strip().replace("\n", " ") )
     objdump_out_file.close()
     os.remove(objdump_out_filename)
+    print returnStr
     return returnStr
 
 #######################################################################################
@@ -63,7 +64,7 @@ class ConfigurationSpec:
 
                 self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle)
                 self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
-                
+
                 # Submit the job to torque and dump the output to a file
                 if not options.no_launch:
                     torque_out_filename = this_directory + "torque_out.{0}.txt".format(os.getpid())
@@ -122,11 +123,14 @@ class ConfigurationSpec:
         if not os.path.isdir(this_run_dir):
             os.makedirs(this_run_dir)
 
-        files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
-                                   glob.glob(os.path.join(full_data_dir, "*.cl")) +\
-                                   glob.glob(os.path.join(full_data_dir, "*.h")) +\
-                                   glob.glob(os.path.dirname(self.config_file) + "/*.icnt") +\
-                                   glob.glob(os.path.dirname(self.config_file) + "/*.xml")
+        if options.run_sst:
+            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*"))
+        else:
+            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
+                                       glob.glob(os.path.join(full_data_dir, "*.cl")) +\
+                                       glob.glob(os.path.join(full_data_dir, "*.h")) +\
+                                       glob.glob(os.path.dirname(self.config_file) + "/*.icnt") +\
+                                       glob.glob(os.path.dirname(self.config_file) + "/*.xml")
 
         for file_to_cp in files_to_copy_to_run_dir:
             new_file = os.path.join(this_run_dir ,
@@ -134,7 +138,7 @@ class ConfigurationSpec:
             if os.path.isfile(new_file):
                 os.remove(new_file)
             shutil.copyfile(file_to_cp,new_file)
-        
+
         # link the data directory
         benchmark_data_dir = os.path.join(full_data_dir, "data")
         if os.path.isdir(benchmark_data_dir):
@@ -149,6 +153,7 @@ class ConfigurationSpec:
                 if os.path.lexists(os.path.join(this_run_dir, "traces")):
                     os.remove(os.path.join(this_run_dir, "traces"))
                 os.symlink(benchmark_trace_dir, os.path.join(this_run_dir,"traces"))
+
 
         all_data_link = os.path.join(this_run_dir,"data_dirs")
         if os.path.lexists(all_data_link):
@@ -166,8 +171,11 @@ class ConfigurationSpec:
             f = open(prelaunch_filename)
             benchmark_command_line = f.read().strip()
             f.close()
-            
-        if options.trace_dir == "":
+
+        if options.run_sst:
+            exec_name = options.benchmark_exec_prefix + " " +\
+                    os.path.join(os.getenv("SST_CORE_HOME"), "bin", "sst")
+        elif options.trace_dir == "":
             exec_name = options.benchmark_exec_prefix + " " +\
                     os.path.join(this_directory, exec_dir, benchmark)
         else:
@@ -183,7 +191,10 @@ class ConfigurationSpec:
             exit("\nERROR - Specify GPGPUSIM_CONFIG prior to running this script")
 
         # do the text replacement for the torque.sim file
-        if options.trace_dir == "":
+        if options.run_sst:
+            mem_usage = "4000mb"
+            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
+        elif options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""
             else:
@@ -195,7 +206,7 @@ class ConfigurationSpec:
 			else:
 				mem_usage = str(options.job_mem) + "mb"
 			txt_args = " -config ./gpgpusim.config -trace ./traces/kernelslist.g -trace_driven_mode 1"
-            
+
 
         if os.getenv("TORQUE_QUEUE_NAME") == None:
             queue_name = "batch"
@@ -204,7 +215,7 @@ class ConfigurationSpec:
 
         replacement_dict = {"NAME":benchmark + "-" + self.benchmark_args_subdirs[command_line_args] + "." +\
                                 gpgpusim_build_handle,
-                            "NODES":"1", 
+                            "NODES":"1",
                             "GPGPUSIM_ROOT":os.getenv("GPGPUSIM_ROOT"),
                             "LIBPATH": libpath,
                             "SUBDIR":this_run_dir,
@@ -259,12 +270,18 @@ else:
 options.so_dir = common.dir_option_test(
     options.so_dir, os.path.join( os.getenv("GPGPUSIM_ROOT"), "lib", os.getenv("GPGPUSIM_CONFIG") ),
     this_directory )
-if options.trace_dir == "":
+
+if options.run_sst:
+    so_path = os.path.join( os.getenv("SST_CORE_HOME"), "bin", "sst" )
+elif options.trace_dir == "":
     so_path = os.path.join( options.so_dir, "libcudart.so" )
 else:
     so_path = os.path.join( options.so_dir, "gpgpusim.out" )
 
-version_string = extract_version( so_path )
+if options.run_sst:
+    version_string = "sst-8.0"
+else:
+    version_string = extract_version( so_path )
 running_so_dir = os.path.join( options.run_directory, "gpgpu-sim-builds", version_string )
 if not os.path.exists( running_so_dir ):
     # In the very rare case that concurrent builds try to make the directory at the same time
@@ -276,7 +293,11 @@ if not os.path.exists( running_so_dir ):
 
 if not os.path.exists(os.path.join(running_so_dir,os.path.basename(so_path))):
     shutil.copy( so_path, running_so_dir )
-options.so_dir = running_so_dir
+
+if options.run_sst:
+    options.so_dir = os.path.join( os.getenv("SST_CORE_HOME"), "bin")
+else:
+    options.so_dir = running_so_dir
 
 common.load_defined_yamls()
 

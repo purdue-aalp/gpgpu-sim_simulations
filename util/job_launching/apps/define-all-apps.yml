@@ -38,13 +38,13 @@ rodinia_2.0-ft:
             - 3 6 16 1024 1024 100 none output.txt 1 ./data/result_3_6_16_1024_1024_100_none_1.txt
 
 sst_benchmarks:
-    exec_dir: "" 
+    exec_dir: "../../benchmarks/data_dirs/cuda/sst/" 
     data_dirs: "../../benchmarks/data_dirs/cuda/sst/"
     execs:
         - vectorAdd:
             - --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py
-        - kokkos:
-            - --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py
+        #- kokkos:
+        #    - --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py
 test:
     exec_dir: "../../benchmarks/bin/$CUDA_VERSION/release/"
     data_dirs: "../../benchmarks/data_dirs/cuda/sdk/4.2/"

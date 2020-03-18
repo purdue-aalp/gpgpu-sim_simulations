@@ -1,6 +1,9 @@
 # Basefile Configs
 
 # Volta
+v100_vecAdd:
+    base_file: "$SST_TUTORIAL/exercises/v100-vecAdd/gpgpusim.config"
+
 TITANV:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM7_TITANV/gpgpusim.config"
 

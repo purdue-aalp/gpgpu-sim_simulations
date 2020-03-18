@@ -129,6 +129,7 @@ class ConfigurationSpec:
             files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.cfg")) +\
                                        glob.glob(os.path.join(full_data_dir, "*.config")) +\
                                        glob.glob(os.path.join(full_data_dir, "*.py"))
+
         else:
             files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
                                        glob.glob(os.path.join(full_data_dir, "*.cl")) +\
@@ -145,8 +146,8 @@ class ConfigurationSpec:
 
         # link the executable directory
         if options.run_sst:
-            if os.path.lexists(os.path.join( this_run_dir, os.path.                         basename(full_sst_exec) ) ):
-                os.remove(os.path.join( this_run_dir, os.path.                         basename(full_sst_exec) ) )
+            if os.path.lexists(os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) ):
+                os.remove(os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) )
             os.symlink(full_sst_exec, os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) )
 
         # link the data directory
@@ -204,7 +205,8 @@ class ConfigurationSpec:
         # do the text replacement for the torque.sim file
         if options.run_sst:
             mem_usage = "4000mb"
-            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
+            txt_args = command_line_args
+            #txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
         elif options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""

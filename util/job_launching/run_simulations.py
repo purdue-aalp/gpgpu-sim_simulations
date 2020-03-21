@@ -49,7 +49,7 @@ class ConfigurationSpec:
         for dir_bench in benchmarks:
             exec_dir, data_dir, benchmark, self.command_line_args_list = dir_bench
             full_exec_dir = os.path.join( this_directory, exec_dir )
-            full_sst_exec = os.path.join( this_directory, exec_dir, benchmark, benchmark)
+            full_sst_exec = os.path.join( this_directory, exec_dir, benchmark)
             full_data_dir = os.path.join( this_directory, data_dir, benchmark.replace('/','_') )
 
             self.benchmark_args_subdirs = {}
@@ -62,10 +62,9 @@ class ConfigurationSpec:
                                 self.benchmark_args_subdirs[args] )
                 this_run_dir = os.path.join( run_directory, appargs_run_subdir, self.run_subdir)
                 self.setup_run_directory(full_data_dir, this_run_dir, data_dir, appargs_run_subdir, full_sst_exec)
-
+                self.text_replace_ariel_cfg(this_run_dir, benchmark)
                 self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle)
-                if not options.run_sst:
-                    self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
+                self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
 
                 # Submit the job to torque and dump the output to a file
                 if not options.no_launch:
@@ -126,9 +125,8 @@ class ConfigurationSpec:
             os.makedirs(this_run_dir)
 
         if options.run_sst:
-            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.cfg")) +\
-                                       glob.glob(os.path.join(full_data_dir, "*.config")) +\
-                                       glob.glob(os.path.join(full_data_dir, "*.py"))
+            files_to_copy_to_run_dir = glob.glob(os.path.dirname(self.config_file) + "/*.cfg") +\
+                                       glob.glob(os.path.dirname(self.config_file) + "/*.py")
 
         else:
             files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
@@ -148,7 +146,7 @@ class ConfigurationSpec:
         if options.run_sst:
             if os.path.lexists(os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) ):
                 os.remove(os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) )
-            os.symlink(full_sst_exec, os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) )
+            os.symlink(os.path.expandvars(full_sst_exec), os.path.join( this_run_dir, os.path.basename(full_sst_exec) ) )
 
         # link the data directory
         benchmark_data_dir = os.path.join(full_data_dir, "data")
@@ -171,6 +169,12 @@ class ConfigurationSpec:
                 os.remove(all_data_link)
             if os.path.exists(os.path.join(this_directory, data_dir)):
                 os.symlink(os.path.join(this_directory, data_dir), all_data_link)
+
+    # replace all the "REPLACE_*" strings in the ariel-gpu-v100.cfg
+    def text_replace_ariel_cfg( self, this_run_dir,  benchmark ):
+        ariel_txt = open(os.path.dirname(self.config_file) + "/ariel-gpu-v100.cfg").read().strip()
+        ariel_txt = re.sub("REPLACE_EXECUTABLE", "./" + benchmark, ariel_txt)
+        open(os.path.join(this_run_dir , "ariel-gpu-v100.cfg"), 'w').write(ariel_txt)
 
     # replaces all the "REAPLCE_*" strings in the torque.sim file
     def text_replace_torque_sim( self,full_run_dir,this_run_dir,benchmark, cuda_version, command_line_args,
@@ -205,8 +209,8 @@ class ConfigurationSpec:
         # do the text replacement for the torque.sim file
         if options.run_sst:
             mem_usage = "4000mb"
-            txt_args = command_line_args
-            #txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
+            #txt_args = command_line_args
+            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
         elif options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""

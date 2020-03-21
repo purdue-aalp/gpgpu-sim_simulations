@@ -1,8 +1,8 @@
 # Basefile Configs
 
 # Volta
-v100_vecAdd:
-    base_file: "$SST_TUTORIAL/exercises/v100-vecAdd/gpgpusim.config"
+v100:
+    base_file: "$SST_TUTORIAL/exercises/v100/gpgpusim.config"
 
 TITANV:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM7_TITANV/gpgpusim.config"
@@ -29,6 +29,11 @@ GTX480:
 # Extra configs - these are composable.
 # The names here will be appended to the basefile name with hyphens
 #   For example TITANX-L1ON-PTXPLUS
+NONETWORK:
+    extra_params: "-network_mode 0"        
+NODEADLOCK:
+    extra_params: "-gpgpu_deadlock_detect 0"
+
 PTXPLUS:
     extra_params: "-gpgpu_ptx_convert_to_ptxplus 1 -gpgpu_ptx_force_max_capability 10"
 

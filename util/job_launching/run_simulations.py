@@ -62,7 +62,7 @@ class ConfigurationSpec:
                                 self.benchmark_args_subdirs[args] )
                 this_run_dir = os.path.join( run_directory, appargs_run_subdir, self.run_subdir)
                 self.setup_run_directory(full_data_dir, this_run_dir, data_dir, appargs_run_subdir, full_sst_exec)
-                self.text_replace_ariel_cfg(this_run_dir, benchmark)
+                self.text_replace_ariel_cfg(this_run_dir, benchmark, args)
                 self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle)
                 self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
 
@@ -171,9 +171,11 @@ class ConfigurationSpec:
                 os.symlink(os.path.join(this_directory, data_dir), all_data_link)
 
     # replace all the "REPLACE_*" strings in the ariel-gpu-v100.cfg
-    def text_replace_ariel_cfg( self, this_run_dir,  benchmark ):
+    def text_replace_ariel_cfg( self, this_run_dir,  benchmark, args ):
         ariel_txt = open(os.path.dirname(self.config_file) + "/ariel-gpu-v100.cfg").read().strip()
         ariel_txt = re.sub("REPLACE_EXECUTABLE", "./" + benchmark, ariel_txt)
+        ariel_txt = re.sub("REPLACE_ARGC", str(1), ariel_txt)
+        ariel_txt = re.sub("REPLACE_ARGS", args, ariel_txt)
         open(os.path.join(this_run_dir , "ariel-gpu-v100.cfg"), 'w').write(ariel_txt)
 
     # replaces all the "REAPLCE_*" strings in the torque.sim file

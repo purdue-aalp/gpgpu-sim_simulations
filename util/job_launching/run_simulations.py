@@ -62,8 +62,8 @@ class ConfigurationSpec:
                                 self.benchmark_args_subdirs[args] )
                 this_run_dir = os.path.join( run_directory, appargs_run_subdir, self.run_subdir)
                 self.setup_run_directory(full_data_dir, this_run_dir, data_dir, appargs_run_subdir, full_sst_exec)
-                self.text_replace_ariel_cfg(this_run_dir, benchmark, args)
-                self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle)
+                self.text_replace_ariel_cfg(this_run_dir, benchmark)
+                self.text_replace_torque_sim(full_data_dir,this_run_dir,benchmark,cuda_version, args, libdir, full_exec_dir,build_handle, args)
                 self.append_gpgpusim_config(benchmark, this_run_dir, self.config_file)
 
                 # Submit the job to torque and dump the output to a file
@@ -171,16 +171,16 @@ class ConfigurationSpec:
                 os.symlink(os.path.join(this_directory, data_dir), all_data_link)
 
     # replace all the "REPLACE_*" strings in the ariel-gpu-v100.cfg
-    def text_replace_ariel_cfg( self, this_run_dir,  benchmark, args ):
+    def text_replace_ariel_cfg( self, this_run_dir,  benchmark ):
         ariel_txt = open(os.path.dirname(self.config_file) + "/ariel-gpu-v100.cfg").read().strip()
         ariel_txt = re.sub("REPLACE_EXECUTABLE", "./" + benchmark, ariel_txt)
-        ariel_txt = re.sub("REPLACE_ARGC", str(1), ariel_txt)
-        ariel_txt = re.sub("REPLACE_ARGS", args, ariel_txt)
+        #ariel_txt = re.sub("REPLACE_ARGC", str(1), ariel_txt)
+        #ariel_txt = re.sub("REPLACE_ARGS", args, ariel_txt)
         open(os.path.join(this_run_dir , "ariel-gpu-v100.cfg"), 'w').write(ariel_txt)
 
     # replaces all the "REAPLCE_*" strings in the torque.sim file
     def text_replace_torque_sim( self,full_run_dir,this_run_dir,benchmark, cuda_version, command_line_args,
-                                 libpath, exec_dir, gpgpusim_build_handle ):
+                                 libpath, exec_dir, gpgpusim_build_handle, args ):
         # get the pre-launch sh commands
         prelaunch_filename =  full_run_dir +\
                              "benchmark_pre_launch_command_line.txt"
@@ -212,7 +212,7 @@ class ConfigurationSpec:
         if options.run_sst:
             mem_usage = "4000mb"
             #txt_args = command_line_args
-            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
+            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg -a " + args + "\" cuda-test.py"
         elif options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""

@@ -96,8 +96,8 @@ sst_benchmarks:
             #- --gtest_filter=cuda.axpby_double
             #- --gtest_filter=cuda.axpby_mv_double
             #- --gtest_filter=cuda.asum_double
-            - --gtest_filter=cuda.abs_double
-            - --gtest_filter=cuda.abs_mv_double
+            - gtest_filter=cuda.abs_double
+            - gtest_filter=cuda.abs_mv_double
 
 test:
     exec_dir: "../../benchmarks/bin/$CUDA_VERSION/release/"

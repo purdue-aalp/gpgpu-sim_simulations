@@ -116,11 +116,10 @@ pipeline {
     }
     post {
         success {
-            emailext body:'''${SCRIPT, template="groovy-html.success.template"}''',
+            emailext body: "See ${BUILD_URL}",
                 recipientProviders: [[$class: 'CulpritsRecipientProvider'],
                     [$class: 'RequesterRecipientProvider']],
                 subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - Success!",
-                attachmentsPattern: 'correl.*.txt',
                 to: 'tgrogers@purdue.edu'
         }
         failure {
@@ -130,5 +129,5 @@ pipeline {
                 subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - ${currentBuild.result}",
                 to: 'tgrogers@purdue.edu'
         }
-    }
+   }
 }

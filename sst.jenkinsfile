@@ -1,0 +1,134 @@
+pipeline {
+    agent {
+        label "tgrogers-raid"
+    }
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('environment-build'){
+            steps{
+                sh '''#!/bin/bash
+                    source /home/tgrogers-raid/a/liu2550/env-setup/sst_8.0_env_setup.sh'''
+                    export LD_LIBRARY_PATH=/home/tgrogers-raid/a/liu2550/cuda-8.0/lib64/:$LD_LIBRARY_PATH
+            }
+        }
+        stage('vector_add&kokkos_test'){
+            steps{
+                sh 'rm -f openmpi-2.1.3.tar.gz'
+                sh 'rm -rf openmpi-2.1.3'
+                sh 'rm -rf sst-core'
+                sh 'rm -rf sst-gpgpusim'
+                sh 'rm -rf sst-elements'
+                sh 'rm -rf sst-tutorial'
+                sh 'rm -rf run_tests'
+                sh 'rm -rf kokkos'
+                sh 'rm -rf kokkos-kernels'
+                sh 'rm -rf gpgpu-sim_simulations'
+                sh '''wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.3.tar.gz
+                    tar xfz openmpi-2.1.3.tar.gz'''
+                sh 'git clone https://github.com/sstsimulator/sst-core'
+                sh 'git clone git@github.com:purdue-aalp/sst-gpgpusim.git'
+                sh 'git clone git@github.com:purdue-aalp/sst-elements.git'
+                sh 'git clone git@github.com:purdue-aalp/sst-tutorial.git'
+                sh 'git clone git@github.com:purdue-aalp/kokkos-kernels.git'
+                sh 'git clone git@github.com:purdue-aalp/kokkos.git'
+                sh 'git clone git@github.com:purdue-aalp/gpgpu-sim_simulations.git'
+
+                sh '''#!/bin/bash
+                    source /usr/local/gpgpu-sim-setup/sst_8.0_env_setup.sh
+                    
+                    cd openmpi-2.1.3
+                    export MPIHOME=`pwd`
+                    ./configure --prefix=$MPIHOME
+                    make all -j
+                    make install
+                    export PATH=$MPIHOME/bin:$PATH
+                    export MPICC=mpicc
+                    export MPICXX=mpicxx
+                    export LD_LIBRARY_PATH=$MPIHOME/lib:$LD_LIBRARY_PATH
+                    cd ..
+                    
+                    echo "==============sst-core stage start=============="
+                    cd sst-core
+                    git checkout 13b97e8f
+                    export SST_CORE_HOME=`pwd`
+                    ./autogen.sh
+                    ./configure --prefix=$SST_CORE_HOME --disable-mem-pools
+                    make all -j
+                    make install
+                    export PATH=$SST_CORE_HOME/bin:$PATH
+                    cd ..
+                    echo "==============sst-core stage end=============="
+                    
+                    echo "==============sst-gpgpusim stage start=============="
+                    cd sst-gpgpusim
+                    source setup_environment
+                    make -j
+                    cd ..
+                    echo "==============sst-gpgpusim stage end=============="
+                    
+                    echo "==============sst-elements stage start=============="
+                    cd sst-elements
+                    export SST_ELEMENTS_HOME=`pwd`
+                    cd src/sst/elements
+                    git clone https://github.com/purdue-aalp/balar
+                    cd ../../..
+                    ./autogen.sh
+                    ./configure --prefix=$SST_ELEMENTS_HOME --with-sst-core=$SST_CORE_HOME --with-pin=$PIN_HOME --with-cuda=$CUDA_INSTALL_PATH --with-gpgpusim=$GPGPUSIM_ROOT
+                    make all -j
+                    make install
+                    #export LD_LIBRARY_PATH=$SST_ELEMENTS_HOME/src/sst/elements/Gpgpusim/:$LD_LIBRARY_PATH
+                    #export SST_ELEMENTS_CONFIG="1"
+                    cd ..
+                    echo "==============sst-elements stage end=============="
+                    
+                    echo "==============run_test stage start=============="
+                    #make install -C sst-core -j
+                    #make -C sst-gpgpusim -j
+                    #make install -C sst-elements -j
+                    #mkdir -p run_tests/vectorAdd/ 
+                    #nvcc sst-tutorial/exercises/vecAdd.cu -o run_tests/vectorAdd/vectorAdd -lcudart
+                    #cd run_tests/vectorAdd/
+                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
+                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-cramsim/* .
+                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
+                    #cd ../..
+                    echo "==============run_test stage end=============="
+                    
+                    echo "==============run_kokkos stage start==============(Yechen)"
+                    cd gpgpu-sim_simulations/util/job_launching/
+
+                    #mkdir -p run_tests/kokkos/
+                    #cp /usr/local/kokkos/KokkosKernels_UnitTest_Cuda run_tests/kokkos/kokkos
+                    #cd run_tests/kokkos/
+                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
+                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-kokkos/* .
+                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
+                    
+                    #killall -9 kokkos
+                    echo "==============run_kokkos stage end==============(Yechen)"
+                '''    
+            }
+        }
+    }
+    post {
+        success {
+            emailext body:'''${SCRIPT, template="groovy-html.success.template"}''',
+                recipientProviders: [[$class: 'CulpritsRecipientProvider'],
+                    [$class: 'RequesterRecipientProvider']],
+                subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - Success!",
+                attachmentsPattern: 'correl.*.txt',
+                to: 'tgrogers@purdue.edu'
+        }
+        failure {
+            emailext body: "See ${BUILD_URL}",
+                recipientProviders: [[$class: 'CulpritsRecipientProvider'],
+                    [$class: 'RequesterRecipientProvider']],
+                subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - ${currentBuild.result}",
+                to: 'tgrogers@purdue.edu'
+        }
+    }
+}

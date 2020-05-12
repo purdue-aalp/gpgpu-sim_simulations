@@ -79,30 +79,18 @@ pipeline {
                     cd ..
                     echo "==============sst-elements stage end=============="
                     
-                    echo "==============run_test stage start=============="
-                    #make install -C sst-core -j
-                    #make -C sst-gpgpusim -j
-                    #make install -C sst-elements -j
-                    #mkdir -p run_tests/vectorAdd/ 
-                    #nvcc sst-tutorial/exercises/vecAdd.cu -o run_tests/vectorAdd/vectorAdd -lcudart
-                    #cd run_tests/vectorAdd/
-                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
-                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-cramsim/* .
-                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
-                    #cd ../..
-                    echo "==============run_test stage end=============="
+                    echo "==============sst-tutorial stage end=============="
+                    cd sst-tutorial
+                    export SST_TUTORIAL=`pwd`
+                    cd ..
+                    echo "==============sst-tutorial stage end=============="
                     
                     echo "==============run_kokkos stage start==============(Yechen)"
                     cd gpgpu-sim_simulations/util/job_launching/
 
-                    #mkdir -p run_tests/kokkos/
-                    #cp /usr/local/kokkos/KokkosKernels_UnitTest_Cuda run_tests/kokkos/kokkos
-                    #cd run_tests/kokkos/
-                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
-                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-kokkos/* .
-                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
-                    
-                    #killall -9 kokkos
+                    cp /home/tgrogers-raid/a/common/kokkos/KokkosKernels_UnitTest_Cuda ../../benchmarks/bin/$CUDA_VERSION/release/kokkos
+                    ./run_simulations.py -S -B sst_benchmarks -C v100 -N sst
+                    ./job_status.py -N sst
                     echo "==============run_kokkos stage end==============(Yechen)"
                 '''    
             }

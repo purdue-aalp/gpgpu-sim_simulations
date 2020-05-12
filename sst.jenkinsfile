@@ -20,6 +20,7 @@ pipeline {
                 sh 'rm -rf kokkos'
                 sh 'rm -rf kokkos-kernels'
                 sh 'rm -rf gpgpu-sim_simulations'
+                sh 'rm -rf env-setup'
                 sh '''wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.3.tar.gz
                     tar xfz openmpi-2.1.3.tar.gz'''
                 sh 'git clone https://github.com/sstsimulator/sst-core'

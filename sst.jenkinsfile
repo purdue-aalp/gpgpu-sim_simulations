@@ -47,7 +47,6 @@ pipeline {
                     
                     echo "==============sst-core stage start=============="
                     cd sst-core
-                    git checkout 13b97e8f
                     export SST_CORE_HOME=`pwd`
                     ./autogen.sh
                     ./configure --prefix=$SST_CORE_HOME --disable-mem-pools

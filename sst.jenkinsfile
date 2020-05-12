@@ -32,6 +32,7 @@ pipeline {
                 sh 'git clone git@github.com:purdue-aalp/env-setup.git'
 
                 sh '''#!/bin/bash
+                    echo $CUDA_INSTALL_PATH
                     source env-setup/sst_8.0_env_setup.sh
                    
                     mkdir -p cuda-8.0/lib64

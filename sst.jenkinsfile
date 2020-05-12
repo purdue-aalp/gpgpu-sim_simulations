@@ -30,14 +30,23 @@ pipeline {
                 sh 'git clone git@github.com:purdue-aalp/kokkos-kernels.git'
                 sh 'git clone git@github.com:purdue-aalp/kokkos.git'
                 sh 'git clone git@github.com:purdue-aalp/gpgpu-sim_simulations.git'
-                sh 'git clone git@github.com:purdue-aalp/env-setup.git'
 
                 sh '''#!/bin/bash
+                    echo "==============env-setup stage start=============="
                     export CUDA_INSTALL_PATH=~/../common/cuda-8.0
-                    echo $CUDA_INSTALL_PATH
-                    ls $CUDA_INSTALL_PATH
-                    ls ~/../common/
-                    source env-setup/sst_8.0_env_setup.sh
+                    export NVIDIA_COMPUTE_SDK_LOCATION=~/../common/NVIDIA_GPU_Computing_SDK/8.0
+                    export LD_LIBRARY_PATH=$CUDA_INSTALL_PATH/lib64:$LD_LIBRARY_PATH
+                    GCC_DIR=/opt/gcc/4.9.4/
+                    export PATH=$GCC_DIR/bin:$PATH
+                    export LD_LIBRARY_PATH=$GCC_DIR/lib64:$GCC_DIR/lib:$GCC_DIR/lib/gcc/x86_64-unknown-linux-gnu/lib64/:$GCC_DIR/lib/gcc/x86_64-unknown-linux-gnu/$GCC_VERSION/:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+                    export PIN_HOME=~/../common/pin-2.14-71313-gcc.4.4.7-linux
+                    export INTEL_PIN_DIRECTORY=$PIN_HOME
+                    export NVOPENCL_INCDIR=$CUDA_INSTALL_PATH/include/;
+                    export PATH=$CUDA_INSTALL_PATH/bin:$PATH
+                    export LD_LIBRARY_PATH=$CUDA_INSTALL_PATH/lib64:$LD_LIBRARY_PATH
+                    export CC=gcc
+                    export CXX=g++
+                    echo "==============env-setup stage end=============="
                    
                     mkdir -p cuda-8.0/lib64
                     cd cuda-8.0/lib64

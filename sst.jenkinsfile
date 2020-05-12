@@ -106,7 +106,8 @@ pipeline {
                     
                     echo "==============run_kokkos stage start==============(Yechen)"
                     cd gpgpu-sim_simulations/util/job_launching/
-
+                    git checkout sst-branch
+                    
                     cp /home/tgrogers-raid/a/common/kokkos/KokkosKernels_UnitTest_Cuda ../../benchmarks/bin/$CUDA_VERSION/release/kokkos
                     ./run_simulations.py -S -B sst_benchmarks -C v100 -N sst
                     ./job_status.py -N sst

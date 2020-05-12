@@ -87,7 +87,7 @@ pipeline {
                     cd sst-elements
                     export SST_ELEMENTS_HOME=`pwd`
                     cd src/sst/elements
-                    git clone https://github.com/purdue-aalp/balar
+                    git clone git@github.com:purdue-aalp/balar.git
                     cd ../../..
                     ./autogen.sh
                     ./configure --prefix=$SST_ELEMENTS_HOME --with-sst-core=$SST_CORE_HOME --with-pin=$PIN_HOME --with-cuda=$CUDA_INSTALL_PATH --with-gpgpusim=$GPGPUSIM_ROOT

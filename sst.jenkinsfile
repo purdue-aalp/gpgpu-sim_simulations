@@ -35,6 +35,8 @@ pipeline {
                 sh '''#!/bin/bash
                     export CUDA_INSTALL_PATH=~/../common/cuda-8.0
                     echo $CUDA_INSTALL_PATH
+                    ls $CUDA_INSTALL_PATH
+                    ls ~/../common/
                     source env-setup/sst_8.0_env_setup.sh
                    
                     mkdir -p cuda-8.0/lib64

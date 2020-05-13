@@ -8,13 +8,6 @@ pipeline {
     }
 
     stages {
-        stage('environment-build'){
-            steps{
-                sh '''#!/bin/bash
-                    source /home/tgrogers-raid/a/liu2550/env-setup/sst_8.0_env_setup.sh'''
-                    export LD_LIBRARY_PATH=/home/tgrogers-raid/a/liu2550/cuda-8.0/lib64/:$LD_LIBRARY_PATH
-            }
-        }
         stage('vector_add&kokkos_test'){
             steps{
                 sh 'rm -f openmpi-2.1.3.tar.gz'
@@ -27,6 +20,7 @@ pipeline {
                 sh 'rm -rf kokkos'
                 sh 'rm -rf kokkos-kernels'
                 sh 'rm -rf gpgpu-sim_simulations'
+                sh 'rm -rf env-setup'
                 sh '''wget https://download.open-mpi.org/release/open-mpi/v2.1/openmpi-2.1.3.tar.gz
                     tar xfz openmpi-2.1.3.tar.gz'''
                 sh 'git clone https://github.com/sstsimulator/sst-core'
@@ -38,7 +32,27 @@ pipeline {
                 sh 'git clone git@github.com:purdue-aalp/gpgpu-sim_simulations.git'
 
                 sh '''#!/bin/bash
-                    source /usr/local/gpgpu-sim-setup/sst_8.0_env_setup.sh
+                    echo "==============env-setup stage start=============="
+                    export CUDA_INSTALL_PATH=~/../common/cuda-8.0
+                    export NVIDIA_COMPUTE_SDK_LOCATION=~/../common/NVIDIA_GPU_Computing_SDK/8.0
+                    export LD_LIBRARY_PATH=$CUDA_INSTALL_PATH/lib64:$LD_LIBRARY_PATH
+                    GCC_DIR=/opt/gcc/4.9.4/
+                    export PATH=$GCC_DIR/bin:$PATH
+                    export LD_LIBRARY_PATH=$GCC_DIR/lib64:$GCC_DIR/lib:$GCC_DIR/lib/gcc/x86_64-unknown-linux-gnu/lib64/:$GCC_DIR/lib/gcc/x86_64-unknown-linux-gnu/$GCC_VERSION/:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+                    export PIN_HOME=~/../common/pin-2.14-71313-gcc.4.4.7-linux
+                    export INTEL_PIN_DIRECTORY=$PIN_HOME
+                    export NVOPENCL_INCDIR=$CUDA_INSTALL_PATH/include/;
+                    export PATH=$CUDA_INSTALL_PATH/bin:$PATH
+                    export LD_LIBRARY_PATH=$CUDA_INSTALL_PATH/lib64:$LD_LIBRARY_PATH
+                    export CC=gcc
+                    export CXX=g++
+                    echo "==============env-setup stage end=============="
+                   
+                    mkdir -p cuda-8.0/lib64
+                    cd cuda-8.0/lib64
+                    ln -s /home/tgrogers-raid/a/common/cuda-8.0/lib64/stubs/libcuda.so libcuda.so.1
+                    export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH
+                    cd ../..
                     
                     cd openmpi-2.1.3
                     export MPIHOME=`pwd`
@@ -53,7 +67,6 @@ pipeline {
                     
                     echo "==============sst-core stage start=============="
                     cd sst-core
-                    git checkout 13b97e8f
                     export SST_CORE_HOME=`pwd`
                     ./autogen.sh
                     ./configure --prefix=$SST_CORE_HOME --disable-mem-pools
@@ -74,7 +87,7 @@ pipeline {
                     cd sst-elements
                     export SST_ELEMENTS_HOME=`pwd`
                     cd src/sst/elements
-                    git clone https://github.com/purdue-aalp/balar
+                    git clone git@github.com:purdue-aalp/balar.git
                     cd ../../..
                     ./autogen.sh
                     ./configure --prefix=$SST_ELEMENTS_HOME --with-sst-core=$SST_CORE_HOME --with-pin=$PIN_HOME --with-cuda=$CUDA_INSTALL_PATH --with-gpgpusim=$GPGPUSIM_ROOT
@@ -85,30 +98,19 @@ pipeline {
                     cd ..
                     echo "==============sst-elements stage end=============="
                     
-                    echo "==============run_test stage start=============="
-                    #make install -C sst-core -j
-                    #make -C sst-gpgpusim -j
-                    #make install -C sst-elements -j
-                    #mkdir -p run_tests/vectorAdd/ 
-                    #nvcc sst-tutorial/exercises/vecAdd.cu -o run_tests/vectorAdd/vectorAdd -lcudart
-                    #cd run_tests/vectorAdd/
-                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
-                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-cramsim/* .
-                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
-                    #cd ../..
-                    echo "==============run_test stage end=============="
+                    echo "==============sst-tutorial stage end=============="
+                    cd sst-tutorial
+                    export SST_TUTORIAL=`pwd`
+                    cd ..
+                    echo "==============sst-tutorial stage end=============="
                     
                     echo "==============run_kokkos stage start==============(Yechen)"
                     cd gpgpu-sim_simulations/util/job_launching/
-
-                    #mkdir -p run_tests/kokkos/
-                    #cp /usr/local/kokkos/KokkosKernels_UnitTest_Cuda run_tests/kokkos/kokkos
-                    #cd run_tests/kokkos/
-                    #cp $GPGPUSIM_ROOT/configs/4.x-cfgs/SM7_TITANV_SST/* .
-                    #cp ../../sst-tutorial/exercises/cuda-test-gpu-mem-volta-kokkos/* .
-                    #sst --model-option="-c ariel-gpu-titanV.cfg" --output-config="python file" cuda-test.py
+                    git checkout sst-branch
                     
-                    #killall -9 kokkos
+                    cp /home/tgrogers-raid/a/common/kokkos/KokkosKernels_UnitTest_Cuda ../../benchmarks/bin/$CUDA_VERSION/release/kokkos
+                    ./run_simulations.py -S -B sst_benchmarks -C v100 -N sst-$$
+                    ./monitor_func_test.py -v -N sst-$$
                     echo "==============run_kokkos stage end==============(Yechen)"
                 '''    
             }
@@ -116,11 +118,10 @@ pipeline {
     }
     post {
         success {
-            emailext body:'''${SCRIPT, template="groovy-html.success.template"}''',
+            emailext body: "See ${BUILD_URL}",
                 recipientProviders: [[$class: 'CulpritsRecipientProvider'],
                     [$class: 'RequesterRecipientProvider']],
                 subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - Success!",
-                attachmentsPattern: 'correl.*.txt',
                 to: 'tgrogers@purdue.edu'
         }
         failure {
@@ -130,5 +131,5 @@ pipeline {
                 subject: "[AALP Jenkins] Build #${BUILD_NUMBER} - ${currentBuild.result}",
                 to: 'tgrogers@purdue.edu'
         }
-    }
+   }
 }

@@ -109,8 +109,8 @@ pipeline {
                     git checkout sst-branch
                     
                     cp /home/tgrogers-raid/a/common/kokkos/KokkosKernels_UnitTest_Cuda ../../benchmarks/bin/$CUDA_VERSION/release/kokkos
-                    ./run_simulations.py -S -B sst_benchmarks -C v100 -N sst
-                    ./job_status.py -N sst
+                    ./run_simulations.py -S -B sst_benchmarks -C v100 -N sst-$$
+                    ./monitor_func_test.py -v -N sst-$$
                     echo "==============run_kokkos stage end==============(Yechen)"
                 '''    
             }

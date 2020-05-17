@@ -124,16 +124,14 @@ class ConfigurationSpec:
         if not os.path.isdir(this_run_dir):
             os.makedirs(this_run_dir)
 
-        if options.run_sst:
-            files_to_copy_to_run_dir = glob.glob(os.path.dirname(self.config_file) + "/*.cfg") +\
-                                       glob.glob(os.path.dirname(self.config_file) + "/*.py")
 
-        else:
-            files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
-                                       glob.glob(os.path.join(full_data_dir, "*.cl")) +\
-                                       glob.glob(os.path.join(full_data_dir, "*.h")) +\
-                                       glob.glob(os.path.dirname(self.config_file) + "/*.icnt") +\
-                                       glob.glob(os.path.dirname(self.config_file) + "/*.xml")
+        files_to_copy_to_run_dir = glob.glob(os.path.join(full_data_dir, "*.ptx")) +\
+                                   glob.glob(os.path.join(full_data_dir, "*.cl")) +\
+                                   glob.glob(os.path.join(full_data_dir, "*.h")) +\
+                                   glob.glob(os.path.dirname(self.config_file) + "/*.icnt") +\
+                                   glob.glob(os.path.dirname(self.config_file) + "/*.xml") +\
+                                   glob.glob(os.path.dirname(self.config_file) + "/*.cfg") +\
+                                   glob.glob(os.path.dirname(self.config_file) + "/*.py")
 
         for file_to_cp in files_to_copy_to_run_dir:
             new_file = os.path.join(this_run_dir ,
@@ -163,12 +161,11 @@ class ConfigurationSpec:
                     os.remove(os.path.join(this_run_dir, "traces"))
                 os.symlink(benchmark_trace_dir, os.path.join(this_run_dir,"traces"))
 
-        if not options.run_sst:
-            all_data_link = os.path.join(this_run_dir,"data_dirs")
-            if os.path.lexists(all_data_link):
-                os.remove(all_data_link)
-            if os.path.exists(os.path.join(this_directory, data_dir)):
-                os.symlink(os.path.join(this_directory, data_dir), all_data_link)
+        all_data_link = os.path.join(this_run_dir,"data_dirs")
+        if os.path.lexists(all_data_link):
+            os.remove(all_data_link)
+        if os.path.exists(os.path.join(this_directory, data_dir)):
+            os.symlink(os.path.join(this_directory, data_dir), all_data_link)
 
     # replace all the "REPLACE_*" strings in the ariel-gpu-v100.cfg
     def text_replace_ariel_cfg( self, this_run_dir,  benchmark ):

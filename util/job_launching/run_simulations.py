@@ -295,7 +295,7 @@ else:
     so_path = os.path.join( options.so_dir, "gpgpusim.out" )
 
 if options.run_sst:
-    version_string = "sst-8.0"
+    version_string = extract_version( os.path.join( options.so_dir, "libcudart.so" ) )
 else:
     version_string = extract_version( so_path )
 running_so_dir = os.path.join( options.run_directory, "gpgpu-sim-builds", version_string )

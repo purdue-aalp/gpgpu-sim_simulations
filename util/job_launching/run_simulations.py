@@ -209,7 +209,10 @@ class ConfigurationSpec:
         if options.run_sst:
             mem_usage = "4000mb"
             #txt_args = command_line_args
-            txt_args = " --model-option=\"-c ariel-gpu-v100.cfg -a " + args + "\" cuda-test.py"
+            if args == None:
+                txt_args = " --model-option=\"-c ariel-gpu-v100.cfg\" cuda-test.py"
+            else:
+                txt_args = " --model-option=\"-c ariel-gpu-v100.cfg -a " + args + "\" cuda-test.py"
         elif options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""

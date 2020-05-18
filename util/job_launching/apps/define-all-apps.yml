@@ -42,60 +42,74 @@ sst_benchmarks:
     data_dirs: "../../benchmarks/data_dirs/" 
     execs:
         - kokkos:
-            #- --gtest_filter=cuda.batched_scalar_team_scale_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsv_l_nt_u_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsv_l_nt_n_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsv_u_nt_u_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsv_u_nt_n_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemv_nt_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemv_t_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_lu_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_l_l_nt_u_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_l_l_nt_n_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_l_u_nt_u_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_l_u_nt_n_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_r_u_nt_u_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_trsm_r_u_nt_n_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemm_nt_nt_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemm_t_nt_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemm_nt_t_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_gemm_t_t_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_set_double_double
-            #- --gtest_filter=cuda.batched_scalar_serial_scale_double_double
-            #- --gtest_filter=cuda.common_set_bit_count
-            #- --gtest_filter=cuda.common_ffs
-            #- --gtest_filter=cuda.sparse_trsv_mv_double_int_int_LayoutLeft_TestExecSpace
-            #- --gtest_filter=cuda.sparse_trsv_mv_double_int_int_LayoutRight_TestExecSpace
-            #- --gtest_filter=cuda.sparse_spmv_double_int_int_TestExecSpace
-            #- --gtest_filter=cuda.sparse_spmv_mv_double_int_int_LayoutLeft_TestExecSpace
-            #- --gtest_filter=cuda.sparse_spmv_mv_double_int_int_LayoutRight_TestExecSpace
-            #- --gtest_filter=cuda.gemm_double
-            #- --gtest_filter=cuda.gemv_double
-            #- --gtest_filter=cuda.update_double
-            #- --gtest_filter=cuda.update_mv_double
-            #- --gtest_filter=cuda.sum_double
-            #- --gtest_filter=cuda.sum_mv_double
-            #- --gtest_filter=cuda.scal_double
-            #- --gtest_filter=cuda.scal_mv_double
-            #- --gtest_filter=cuda.reciprocal_double
-            #- --gtest_filter=cuda.reciprocal_mv_double
-            #- --gtest_filter=cuda.nrminf_double
-            #- --gtest_filter=cuda.nrminf_mv_double
-            #- --gtest_filter=cuda.nrm2_squared_double
-            #- --gtest_filter=cuda.nrm2_squared_mv_double
-            #- --gtest_filter=cuda.nrm2_double
-            #- --gtest_filter=cuda.nrm2_mv_double
-            #- --gtest_filter=cuda.nrm1_double
-            #- --gtest_filter=cuda.nrm1_mv_double
-            #- --gtest_filter=cuda.mult_double
-            #- --gtest_filter=cuda.mult_mv_double
-            #- --gtest_filter=cuda.dot_double
-            #- --gtest_filter=cuda.dot_mv_double
-            #- --gtest_filter=cuda.axpy_double
-            #- --gtest_filter=cuda.axpy_mv_double
-            #- --gtest_filter=cuda.axpby_double
-            #- --gtest_filter=cuda.axpby_mv_double
-            #- --gtest_filter=cuda.asum_double
+            - gtest_filter=cuda.batched_scalar_team_gemv_nt_double_double
+            - gtest_filter=cuda.batched_scalar_team_gemv_t_double_double
+            - gtest_filter=cuda.batched_scalar_team_lu_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_l_l_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_l_l_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_l_u_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_l_u_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_r_u_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_team_trsm_r_u_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_team_gemm_nt_nt_double_double
+            - gtest_filter=cuda.batched_scalar_team_gemm_t_nt_double_double
+            - gtest_filter=cuda.batched_scalar_team_gemm_nt_t_double_double
+            - gtest_filter=cuda.batched_scalar_team_gemm_t_t_double_double
+            - gtest_filter=cuda.batched_scalar_team_set_double_double
+            - gtest_filter=cuda.batched_scalar_team_scale_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsv_l_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsv_l_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsv_u_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsv_u_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemv_nt_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemv_t_double_double
+            - gtest_filter=cuda.batched_scalar_serial_lu_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_l_l_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_l_l_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_l_u_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_l_u_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_r_u_nt_u_double_double
+            - gtest_filter=cuda.batched_scalar_serial_trsm_r_u_nt_n_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemm_nt_nt_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemm_t_nt_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemm_nt_t_double_double
+            - gtest_filter=cuda.batched_scalar_serial_gemm_t_t_double_double
+            - gtest_filter=cuda.batched_scalar_serial_set_double_double
+            - gtest_filter=cuda.batched_scalar_serial_scale_double_double
+            - gtest_filter=cuda.common_set_bit_count
+            - gtest_filter=cuda.common_ffs
+            - gtest_filter=cuda.sparse_trsv_mv_double_int_int_LayoutLeft_TestExecSpace
+            - gtest_filter=cuda.sparse_trsv_mv_double_int_int_LayoutRight_TestExecSpace
+            - gtest_filter=cuda.sparse_spmv_double_int_int_TestExecSpace
+            - gtest_filter=cuda.sparse_spmv_mv_double_int_int_LayoutLeft_TestExecSpace
+            - gtest_filter=cuda.sparse_spmv_mv_double_int_int_LayoutRight_TestExecSpace
+            - gtest_filter=cuda.gemm_double
+            - gtest_filter=cuda.gemv_double
+            - gtest_filter=cuda.update_double
+            - gtest_filter=cuda.update_mv_double
+            - gtest_filter=cuda.sum_double
+            - gtest_filter=cuda.sum_mv_double
+            - gtest_filter=cuda.scal_double
+            - gtest_filter=cuda.scal_mv_double
+            - gtest_filter=cuda.reciprocal_double
+            - gtest_filter=cuda.reciprocal_mv_double
+            - gtest_filter=cuda.nrminf_double
+            - gtest_filter=cuda.nrminf_mv_double
+            - gtest_filter=cuda.nrm2_squared_double
+            - gtest_filter=cuda.nrm2_squared_mv_double
+            - gtest_filter=cuda.nrm2_double
+            - gtest_filter=cuda.nrm2_mv_double
+            - gtest_filter=cuda.nrm1_double
+            - gtest_filter=cuda.nrm1_mv_double
+            - gtest_filter=cuda.mult_double
+            - gtest_filter=cuda.mult_mv_double
+            - gtest_filter=cuda.dot_double
+            - gtest_filter=cuda.dot_mv_double
+            - gtest_filter=cuda.axpy_double
+            - gtest_filter=cuda.axpy_mv_double
+            - gtest_filter=cuda.axpby_double
+            - gtest_filter=cuda.axpby_mv_double
+            - gtest_filter=cuda.asum_double
             - gtest_filter=cuda.abs_double
             - gtest_filter=cuda.abs_mv_double
 
@@ -104,7 +118,7 @@ test:
     data_dirs: "../../benchmarks/data_dirs/cuda/sdk/4.2/"
     execs:
         - vectorAdd:
-            - --size 5000
+            -
 
 GPU_Microbenchmark:
     exec_dir: "../../benchmarks/bin/$CUDA_VERSION/release/"

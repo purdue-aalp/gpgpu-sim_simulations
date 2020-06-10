@@ -70,15 +70,14 @@ class ConfigurationSpec:
                     torque_out_file = open(torque_out_filename, 'w+')
                     saved_dir = os.getcwd()
                     os.chdir(this_run_dir)
-                    if subprocess.call(["qsub",\
-                                        "-W", "umask=022",\
-                                       os.path.join(this_run_dir , "torque.sim")],\
+                    if subprocess.call(["sbatch",\
+                                       os.path.join(this_run_dir , "slurm.sim")],\
                                        stdout=torque_out_file) < 0:
                         exit("Error Launching Torque Job")
                     else:
                         # Parse the torque output for just the numeric ID
                         torque_out_file.seek(0)
-                        torque_out = re.sub(r"(^\d+).*", r"\1",
+                        torque_out = re.sub(r"[^\d]*(\d*).*", r"\1",
                             torque_out_file.read().strip())
                         print("Job " + torque_out + " queued (" +\
                             benchmark + "-" + self.benchmark_args_subdirs[args] +\
@@ -216,12 +215,12 @@ class ConfigurationSpec:
                             "COMMAND_LINE":txt_args,
                             "MEM_USAGE": mem_usage
                             }
-        torque_text = open(this_directory + "torque.sim").read().strip()
+        torque_text = open(this_directory + "slurm.sim").read().strip()
         for entry in replacement_dict:
             torque_text = re.sub("REPLACE_" + entry,
                                  str(replacement_dict[entry]),
                                  torque_text)
-        open(os.path.join(this_run_dir , "torque.sim"), 'w').write(torque_text)
+        open(os.path.join(this_run_dir , "slurm.sim"), 'w').write(torque_text)
         exec_line = torque_text.splitlines()[-1]
         justrunfile = os.path.join(this_run_dir , "justrun.sh")
         open(justrunfile, 'w').write(exec_line + " | tee gpgpu-sim-out_`date '+%b_%d_%H:%M.%S'`.txt")
@@ -285,8 +284,8 @@ options.so_dir = running_so_dir
 common.load_defined_yamls()
 
 # Test for the existance of torque on the system
-if not any([os.path.isfile(os.path.join(p, "qsub")) for p in os.getenv("PATH").split(os.pathsep)]):
-    exit("ERROR - Cannot find qsub in PATH... Is torque installed on this machine?")
+if not any([os.path.isfile(os.path.join(p, "sbatch")) for p in os.getenv("PATH").split(os.pathsep)]):
+    exit("ERROR - Cannot find sbatch in PATH... Is slurm installed on this machine?")
 
 if not any([os.path.isfile(os.path.join(p, "nvcc")) for p in os.getenv("PATH").split(os.pathsep)]):
     exit("ERROR - Cannot find nvcc PATH... Is CUDA_INSTALL_PATH/bin in the system PATH?")

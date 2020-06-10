@@ -8,7 +8,7 @@ import sys
 import common
 import math
 
-# uses torque's tracejob to determine the job status
+# uses squeue to determine job status
 def get_job_status( jobId ):
     job_status = { "state" : "WAITING_TO_RUN",
                    "exec_host" : "UNKNOWN",
@@ -16,28 +16,23 @@ def get_job_status( jobId ):
                    "mem_used" : "UNKNOWN" }
     trace_out_filename = os.path.join(this_directory, "trace_out-{0}.txt".format(os.getpid()))
     trace_out_file = open(trace_out_filename, 'w+')
-    if subprocess.call(["qstat" ,"-f", jobId],
+    if subprocess.call(["squeue" ,"-o", "%t,%N,%M", "-j", jobId],
         stdout=trace_out_file, stderr=trace_out_file) < 0:
         exit("Error Launching Tracejob Job")
     else:
-        # Parse the torque output for just the numeric ID
+        # Parse the squeue output
         trace_out_file.seek(0)
-        trace_out = re.sub( "\n", " ", trace_out_file.read().strip() )
-        state_match = re.search( "job_state\s=\s([^\s]*)", trace_out )
-        if state_match != None:
-            if (state_match.group(1) == 'R' or state_match.group(1) == 'E'):
-                job_status[ "state" ] = "RUNNING"
-            elif state_match.group(1) == 'C':
-                job_status[ "state" ] = "COMPLETE_NO_OTHER_INFO"
-            host_match = re.search( "exec_host\s=\s([^\s]*)", trace_out )
-            if host_match != None:
-                job_status[ "exec_host" ] = host_match.group(1)
-            mem_used = re.search("resources_used.mem\s=\s([^\s]*)kb", trace_out)
-            if mem_used != None:
-                job_status[ "mem_used" ] = mem_used.group(1)
-            time_match = re.search( "resources_used.walltime\s=\s([^\s]*)", trace_out )
-            if time_match != None:
-                job_status[ "running_time" ] = time_match.group(1)
+        trace_out = trace_out_file.readlines()
+        if len(trace_out) > 1:
+            trace_out = trace_out[1]
+            state_match = re.search( "(.*),(.*),(.*)", trace_out )
+            if state_match != None:
+                if (state_match.group(1) == 'R' or state_match.group(1) == 'CG'):
+                    job_status[ "state" ] = "RUNNING"
+                elif state_match.group(1) == 'CD':
+                    job_status[ "state" ] = "COMPLETE_NO_OTHER_INFO"
+                job_status[ "exec_host" ] = state_match.group(2)
+                job_status[ "running_time" ] = state_match.group(3)
         trace_out_file.close()
         os.remove(trace_out_filename)
     return job_status

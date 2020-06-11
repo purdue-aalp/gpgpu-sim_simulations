@@ -8,8 +8,42 @@ import sys
 import common
 import math
 
+
+def get_torque_status( jobId ):
+    job_status = { "state" : "WAITING_TO_RUN",
+                   "exec_host" : "UNKNOWN",
+                   "running_time": "UNKNOWN",
+                   "mem_used" : "UNKNOWN" }
+    trace_out_filename = os.path.join(this_directory, "trace_out-{0}.txt".format(os.getpid()))
+    trace_out_file = open(trace_out_filename, 'w+')
+    if subprocess.call(["qstat" ,"-f", jobId],
+        stdout=trace_out_file, stderr=trace_out_file) < 0:
+        exit("Error Launching Tracejob Job")
+    else:
+        # Parse the torque output for just the numeric ID
+        trace_out_file.seek(0)
+        trace_out = re.sub( "\n", " ", trace_out_file.read().strip() )
+        state_match = re.search( "job_state\s=\s([^\s]*)", trace_out )
+        if state_match != None:
+            if (state_match.group(1) == 'R' or state_match.group(1) == 'E'):
+                job_status[ "state" ] = "RUNNING"
+            elif state_match.group(1) == 'C':
+                job_status[ "state" ] = "COMPLETE_NO_OTHER_INFO"
+            host_match = re.search( "exec_host\s=\s([^\s]*)", trace_out )
+            if host_match != None:
+                job_status[ "exec_host" ] = host_match.group(1)
+            mem_used = re.search("resources_used.mem\s=\s([^\s]*)kb", trace_out)
+            if mem_used != None:
+                job_status[ "mem_used" ] = mem_used.group(1)
+            time_match = re.search( "resources_used.walltime\s=\s([^\s]*)", trace_out )
+            if time_match != None:
+                job_status[ "running_time" ] = time_match.group(1)
+        trace_out_file.close()
+        os.remove(trace_out_filename)
+    return job_status
+
 # uses squeue to determine job status
-def get_job_status( jobId ):
+def get_squeue_status( jobId ):
     job_status = { "state" : "WAITING_TO_RUN",
                    "exec_host" : "UNKNOWN",
                    "running_time": "UNKNOWN",
@@ -88,6 +122,15 @@ options.run_dir = options.run_dir.strip()
 options.sim_name = options.sim_name.strip()
 
 cuda_version = common.get_cuda_version( this_directory )
+
+job_manager = None
+if any([os.path.isfile(os.path.join(p, "squeue")) for p in os.getenv("PATH").split(os.pathsep)]):
+    job_manager = "squeue"
+elif any([os.path.isfile(os.path.join(p, "qstat")) for p in os.getenv("PATH").split(os.pathsep)]):
+    job_manager = "qstat"
+
+if job_manager == None:
+    exit("ERROR - Cannot find squeue or qstat in PATH... Is one of slurm or torque installed on this machine?")
 
 parsed_logfiles = []
 logfiles_directory = this_directory + "../job_launching/logfiles/"
@@ -200,7 +243,11 @@ for logfile in parsed_logfiles:
             stat_found = set()
             status_found = set()
 
-            job_status = get_job_status( jobId )
+            if job_manager == "squeue":
+                job_status = get_squeue_status( jobId )
+            elif job_manager == "qstat":
+                job_status = get_qsub_status( jobId )
+
             if ( job_status[ "state" ] == "WAITING_TO_RUN" or job_status[ "state" ] == "RUNNING" ) \
                 and not os.path.isfile( outfile ):
                 files_to_check = []

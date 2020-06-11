@@ -70,8 +70,8 @@ class ConfigurationSpec:
                     torque_out_file = open(torque_out_filename, 'w+')
                     saved_dir = os.getcwd()
                     os.chdir(this_run_dir)
-                    if subprocess.call(["sbatch",\
-                                       os.path.join(this_run_dir , "slurm.sim")],\
+                    if subprocess.call([job_submit_call,\
+                                       os.path.join(this_run_dir , job_template)],\
                                        stdout=torque_out_file) < 0:
                         exit("Error Launching Torque Job")
                     else:
@@ -215,12 +215,12 @@ class ConfigurationSpec:
                             "COMMAND_LINE":txt_args,
                             "MEM_USAGE": mem_usage
                             }
-        torque_text = open(this_directory + "slurm.sim").read().strip()
+        torque_text = open(this_directory + job_template).read().strip()
         for entry in replacement_dict:
             torque_text = re.sub("REPLACE_" + entry,
                                  str(replacement_dict[entry]),
                                  torque_text)
-        open(os.path.join(this_run_dir , "slurm.sim"), 'w').write(torque_text)
+        open(os.path.join(this_run_dir , job_template), 'w').write(torque_text)
         exec_line = torque_text.splitlines()[-1]
         justrunfile = os.path.join(this_run_dir , "justrun.sh")
         open(justrunfile, 'w').write(exec_line + " | tee gpgpu-sim-out_`date '+%b_%d_%H:%M.%S'`.txt")
@@ -284,11 +284,20 @@ options.so_dir = running_so_dir
 common.load_defined_yamls()
 
 # Test for the existance of torque on the system
-if not any([os.path.isfile(os.path.join(p, "sbatch")) for p in os.getenv("PATH").split(os.pathsep)]):
-    exit("ERROR - Cannot find sbatch in PATH... Is slurm installed on this machine?")
+job_submit_call = None
+job_template = None
+if any([os.path.isfile(os.path.join(p, "sbatch")) for p in os.getenv("PATH").split(os.pathsep)]):
+    job_submit_call = "sbatch"
+    job_template = "slurm.sim"
+elif any([os.path.isfile(os.path.join(p, "qsub")) for p in os.getenv("PATH").split(os.pathsep)]):
+    job_submit_call = "qsub"
+    job_template = "torque.sim"
 
 if not any([os.path.isfile(os.path.join(p, "nvcc")) for p in os.getenv("PATH").split(os.pathsep)]):
     exit("ERROR - Cannot find nvcc PATH... Is CUDA_INSTALL_PATH/bin in the system PATH?")
+
+if job_submit_call == None:
+    exit("ERROR - Cannot find sbatch or qsub in PATH... Is one of slurm or torque installed on this machine?")
 
 
 benchmarks = []

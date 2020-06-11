@@ -9,7 +9,7 @@ import common
 import math
 
 
-def get_torque_status( jobId ):
+def get_qstat_status( jobId ):
     job_status = { "state" : "WAITING_TO_RUN",
                    "exec_host" : "UNKNOWN",
                    "running_time": "UNKNOWN",
@@ -246,7 +246,7 @@ for logfile in parsed_logfiles:
             if job_manager == "squeue":
                 job_status = get_squeue_status( jobId )
             elif job_manager == "qstat":
-                job_status = get_qsub_status( jobId )
+                job_status = get_qstat_status( jobId )
 
             if ( job_status[ "state" ] == "WAITING_TO_RUN" or job_status[ "state" ] == "RUNNING" ) \
                 and not os.path.isfile( outfile ):

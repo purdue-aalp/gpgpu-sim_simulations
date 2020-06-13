@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --mem=REPLACE_MEM_USAGE
 #SBACTH --time=200:00:00,
-#SBACTH --partition=REPLACE_QUEUE_NAME
+#SBATCH -p REPLACE_QUEUE_NAME
 #SBATCH --mail-type=END,FAIL
 #SBATCH --export=ALL
 #SBATCH --output=/tmp/REPLACE_NAME.o%j

@@ -11,11 +11,13 @@ pipeline {
         stage('setup-data') {
             steps{
                 sh 'ln -sf /home/tgrogers-raid/a/common/data_dirs ./benchmarks/'
+                sh 'git clone git@github.com:purdue-aalp/env-setup.git &&
+                    cd env-setup && git checkout cluster-ubuntu'
             }
         }
         stage('4.2-simulations-build'){
             steps{
-                sh 'source /home/tgrogers-raid/a/common/gpgpu-sim-setup/4.2_env_setup.sh &&\
+                sh 'source ./env-setup/4.2_env_setup.sh &&\
                 source ./benchmarks/src/setup_environment &&\
                 make -C ./benchmarks/src clean &&\
                 make -C ./benchmarks/src all'
@@ -23,7 +25,7 @@ pipeline {
         }
         stage('9.1-simulations-build'){
             steps{
-                sh 'source /home/tgrogers-raid/a/common/gpgpu-sim-setup/9.1_env_setup.sh &&\
+                sh 'source ./env-setup/9.1_env_setup.sh &&\
                 source ./benchmarks/src/setup_environment && \
                 make -C ./benchmarks/src clean && \
                 make -C ./benchmarks/src all'

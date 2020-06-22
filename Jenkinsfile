@@ -11,7 +11,7 @@ pipeline {
         stage('setup-data') {
             steps{
                 sh 'ln -sf /home/tgrogers-raid/a/common/data_dirs ./benchmarks/'
-                sh 'git clone git@github.com:purdue-aalp/env-setup.git &&\
+                sh 'rm -rf env-setup && git clone git@github.com:purdue-aalp/env-setup.git &&\
                     cd env-setup && git checkout cluster-ubuntu'
             }
         }

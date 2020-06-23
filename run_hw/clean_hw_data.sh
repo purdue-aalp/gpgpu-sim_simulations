@@ -1,3 +1,4 @@
+#!/bin/bash
 export DATA_ROOT="$( cd "$( dirname "$BASH_SOURCE" )" && pwd )"
 TITANX_PASCAL_DATA=$DATA_ROOT/TITAN-X-PASCAL
 P100_PASCAL_DATA=$DATA_ROOT/TESLA-P100

@@ -15,20 +15,22 @@ pipeline {
                     cd env-setup && git checkout cluster-ubuntu'
             }
         }
-        stage('4.2-simulations-build'){
-            steps{
-                sh 'source ./env-setup/4.2_env_setup.sh &&\
-                source ./benchmarks/src/setup_environment &&\
-                make -C ./benchmarks/src clean &&\
-                make -C ./benchmarks/src all'
-            }
-        }
         stage('9.1-simulations-build'){
             steps{
-                sh 'source ./env-setup/9.1_env_setup.sh &&\
+                sh '''#!/usr/bin/bash
+                source ./env-setup/9.1_env_setup.sh &&\
                 source ./benchmarks/src/setup_environment && \
                 make -C ./benchmarks/src clean && \
-                make -C ./benchmarks/src all'
+                make -C ./benchmarks/src all'''
+            }
+        }
+        stage('11.0-simulations-build'){
+            steps{
+                sh '''#!/usr/bin/bash
+                source ./env-setup/11.0_env_setup.sh &&\
+                source ./benchmarks/src/setup_environment &&\
+                make -C ./benchmarks/src clean &&\
+                make -C ./benchmarks/src all'''
             }
         }
     }

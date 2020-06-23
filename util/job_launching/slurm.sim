@@ -3,7 +3,7 @@
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=1
-#SBATCH --mem=REPLACE_MEM_USAGE
+#SBATCH --mem-per-cpu=REPLACE_MEM_USAGE
 #SBACTH --time=200:00:00,
 #SBATCH -p REPLACE_QUEUE_NAME
 #SBATCH --mail-type=END,FAIL

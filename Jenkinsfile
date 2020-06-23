@@ -15,15 +15,6 @@ pipeline {
                     cd env-setup && git checkout cluster-ubuntu'
             }
         }
-        stage('9.1-simulations-build'){
-            steps{
-                sh '''#!/bin/bash
-                source ./env-setup/9.1_env_setup.sh &&\
-                source ./benchmarks/src/setup_environment && \
-                make -C ./benchmarks/src clean && \
-                make -C ./benchmarks/src all'''
-            }
-        }
         stage('11.0-simulations-build'){
             steps{
                 sh '''#!/bin/bash

@@ -72,3 +72,7 @@ cuda/GPU_Microbenchmark/mem_lat/mem_lat
 cuda/GPU_Microbenchmark/shared_bw/shared_bw
 cuda/GPU_Microbenchmark/shared_lat/shared_lat
 cuda/shoc-master/configure
+cuda/rodinia/3.1/cuda/leukocyte/meschach_lib/conftest.c
+cuda/rodinia/3.1/cuda/leukocyte/meschach_lib/macheps
+cuda/rodinia/3.1/cuda/leukocyte/meschach_lib/maxint
+cuda/rodinia/3.1/cuda/leukocyte/meschach_lib/meschach.a

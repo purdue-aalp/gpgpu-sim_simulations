@@ -182,19 +182,18 @@ class ConfigurationSpec:
             exit("\nERROR - Specify GPGPUSIM_CONFIG prior to running this script")
 
         # do the text replacement for the torque.sim file
+        mem_usage = options.job_mem
         if options.trace_dir == "":
             if command_line_args == None:
                 txt_args = ""
             else:
                 txt_args = command_line_args
-            mem_usage = "4000mb"
+            if mem_usage == "":
+                mem_usage = "4G"
         else:
-			if options.job_mem == "":
-				mem_usage = "20000mb"
-			else:
-				mem_usage = str(options.job_mem) + "mb"
-			txt_args = " -config ./gpgpusim.config -trace ./traces/kernelslist.g -trace_driven_mode 1"
-            
+            if mem_usage == "":
+                mem_usage = "20G"
+            txt_args = " -config ./gpgpusim.config -trace ./traces/kernelslist.g -trace_driven_mode 1"
 
         if os.getenv("TORQUE_QUEUE_NAME") == None:
             queue_name = "batch"

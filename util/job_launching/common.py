@@ -169,8 +169,7 @@ def parse_run_simulations_options():
                   help="Pass this option to run the simulator in trace-driven mode."+\
                         " The directory passed should be the root of all the trace files.")
     parser.add_option("-M", "--job_mem", dest="job_mem", default="",
-                  help="Memory usgae of the job in MB.")
-						
+                  help="Memory usgae of the job (i.e. 4G, 200M, etc.).")
     (options, args) = parser.parse_args()
     # Parser seems to leave some whitespace on the options, getting rid of it
     if options.trace_dir != "":

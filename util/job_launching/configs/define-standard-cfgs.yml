@@ -1,6 +1,9 @@
 # Basefile Configs
 
 # Pascal
+GTX1080Ti_UVM:
+    base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM6_GTX1080Ti/gpgpusim.config"
+
 TITANX:
     base_file: "$GPGPUSIM_ROOT/configs/tested-cfgs/SM6_TITANX/gpgpusim.config"
 

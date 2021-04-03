@@ -786,6 +786,9 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     cudaFree(arrayX_GPU);
 
     //free regular memory
+    free(disk);
+    free(objxy);
+    free(weights);
     free(likelihood);
     free(arrayX);
     free(arrayY);
@@ -794,9 +797,6 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     free(CDF);
     free(ind);
     free(u);
-    free(disk);
-    free(objxy);
-    free(weights);
 }
 
 int main(int argc, char * argv[]) {

@@ -640,7 +640,7 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     //expected object locations, compared to center
     int radius = 5;
     int diameter = radius * 2 - 1;
-    int * disk = (int*)calloc(sizeof(int), diameter * diameter);
+    int * disk = (int*)calloc(diameter * diameter, sizeof(int));
     strelDisk(disk, radius);
     int countOnes = 0;
     int x, y;
@@ -650,21 +650,21 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
                 countOnes++;
         }
     }
-    int * objxy = (int *)calloc(sizeof(int), countOnes * 2);
+    int * objxy = (int *)calloc(countOnes * 2, sizeof(int));
     getneighbors(disk, countOnes, objxy, radius);
     //initial weights are all equal (1/Nparticles)
-    double * weights = (double *)calloc(sizeof(double), Nparticles);
+    double * weights = (double *)calloc(Nparticles, sizeof(double));
     for (x = 0; x < Nparticles; x++) {
         weights[x] = 1 / ((double) (Nparticles));
     }
 
     //initial likelihood to 0.0
     double * likelihood = (double *)calloc(Nparticles, sizeof (double));
-    double * arrayX = (double *)calloc(sizeof(double), Nparticles);
-    double * arrayY = (double *)calloc(sizeof(double), Nparticles);
-    double * xj = (double *)calloc(sizeof(double), Nparticles);
-    double * yj = (double *)calloc(sizeof(double), Nparticles);
-    double * CDF = (double *)calloc(sizeof(double), Nparticles);
+    double * arrayX = (double *)calloc(Nparticles, sizeof(double));
+    double * arrayY = (double *)calloc(Nparticles, sizeof(double));
+    double * xj = (double *)calloc(Nparticles, sizeof(double));
+    double * yj = (double *)calloc(Nparticles, sizeof(double));
+    double * CDF = (double *)calloc(Nparticles, sizeof(double));
 
     //GPU copies of arrays
     double * arrayX_GPU;
@@ -677,9 +677,9 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     double * weights_GPU;
     int * objxy_GPU;
 
-    int * ind = (int *)calloc(sizeof(int), countOnes * Nparticles);
+    int * ind = (int *)calloc(countOnes * Nparticles, sizeof(int));
     int * ind_GPU;
-    double * u = (double *)calloc(sizeof(double), Nparticles);
+    double * u = (double *)calloc(Nparticles, sizeof(double));
     double * u_GPU;
     int * seed_GPU;
     double* partial_sums;
@@ -859,7 +859,7 @@ int main(int argc, char * argv[]) {
         return 0;
     }
     //establish seed
-    int * seed = (int *)calloc(sizeof(int), Nparticles);
+    int * seed = (int *)calloc(Nparticles, sizeof(int));
     int i;
     for (i = 0; i < Nparticles; i++)
         seed[i] = time(0) * i;

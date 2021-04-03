@@ -55,7 +55,7 @@ void check_error(cudaError e) {
 
 void cuda_print_double_array(double *array_GPU, size_t size) {
     //allocate temporary array for printing
-    double* mem = (double*) malloc(sizeof (double) *size);
+    double* mem = (double*)calloc(size, sizeof (double));
 
     //transfer data from device
     cudaMemcpy(mem, array_GPU, sizeof (double) *size, cudaMemcpyDeviceToHost);
@@ -577,7 +577,7 @@ void videoSequence(unsigned char * I, int IszX, int IszY, int Nfr, int * seed) {
     }
 
     /*dilate matrix*/
-    unsigned char * newMatrix = (unsigned char *) malloc(sizeof (unsigned char) * IszX * IszY * Nfr);
+    unsigned char * newMatrix = (unsigned char *)calloc(IszX * IszY * Nfr, sizeof (unsigned char));
     imdilate_disk(I, IszX, IszY, Nfr, 5, newMatrix);
     int x, y;
     for (x = 0; x < IszX; x++) {
@@ -640,7 +640,7 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     //expected object locations, compared to center
     int radius = 5;
     int diameter = radius * 2 - 1;
-    int * disk = (int*) malloc(diameter * diameter * sizeof (int));
+    int * disk = (int*)calloc(sizeof(int), diameter * diameter);
     strelDisk(disk, radius);
     int countOnes = 0;
     int x, y;
@@ -650,21 +650,21 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
                 countOnes++;
         }
     }
-    int * objxy = (int *) malloc(countOnes * 2 * sizeof (int));
+    int * objxy = (int *)calloc(sizeof(int), countOnes * 2);
     getneighbors(disk, countOnes, objxy, radius);
     //initial weights are all equal (1/Nparticles)
-    double * weights = (double *) malloc(sizeof (double) *Nparticles);
+    double * weights = (double *)calloc(sizeof(double), Nparticles);
     for (x = 0; x < Nparticles; x++) {
         weights[x] = 1 / ((double) (Nparticles));
     }
 
     //initial likelihood to 0.0
-    double * likelihood = (double *) malloc(sizeof (double) *Nparticles);
-    double * arrayX = (double *) malloc(sizeof (double) *Nparticles);
-    double * arrayY = (double *) malloc(sizeof (double) *Nparticles);
-    double * xj = (double *) malloc(sizeof (double) *Nparticles);
-    double * yj = (double *) malloc(sizeof (double) *Nparticles);
-    double * CDF = (double *) malloc(sizeof (double) *Nparticles);
+    double * likelihood = (double *)calloc(Nparticles, sizeof (double));
+    double * arrayX = (double *)calloc(sizeof(double), Nparticles);
+    double * arrayY = (double *)calloc(sizeof(double), Nparticles);
+    double * xj = (double *)calloc(sizeof(double), Nparticles);
+    double * yj = (double *)calloc(sizeof(double), Nparticles);
+    double * CDF = (double *)calloc(sizeof(double), Nparticles);
 
     //GPU copies of arrays
     double * arrayX_GPU;
@@ -677,9 +677,9 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     double * weights_GPU;
     int * objxy_GPU;
 
-    int * ind = (int*) malloc(sizeof (int) *countOnes * Nparticles);
+    int * ind = (int *)calloc(sizeof(int), countOnes * Nparticles);
     int * ind_GPU;
-    double * u = (double *) malloc(sizeof (double) *Nparticles);
+    double * u = (double *)calloc(sizeof(double), Nparticles);
     double * u_GPU;
     int * seed_GPU;
     double* partial_sums;
@@ -794,6 +794,9 @@ void particleFilter(unsigned char * I, int IszX, int IszY, int Nfr, int * seed, 
     free(CDF);
     free(ind);
     free(u);
+    free(disk);
+    free(objxy);
+    free(weights);
 }
 
 int main(int argc, char * argv[]) {
@@ -856,12 +859,12 @@ int main(int argc, char * argv[]) {
         return 0;
     }
     //establish seed
-    int * seed = (int *) malloc(sizeof (int) *Nparticles);
+    int * seed = (int *)calloc(sizeof(int), Nparticles);
     int i;
     for (i = 0; i < Nparticles; i++)
         seed[i] = time(0) * i;
     //malloc matrix
-    unsigned char * I = (unsigned char *) malloc(sizeof (unsigned char) *IszX * IszY * Nfr);
+    unsigned char * I = (unsigned char *)calloc(IszX * IszY * Nfr, sizeof(unsigned char));
     long long start = get_time();
     //call video sequence
     videoSequence(I, IszX, IszY, Nfr, seed);

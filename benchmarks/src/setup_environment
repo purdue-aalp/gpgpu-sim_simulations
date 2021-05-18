@@ -150,6 +150,11 @@ if [ $CUDA_VERSION_MAJOR -gt 8 ]; then
     export MAKE_ARGS="$MAKE_ARGS GENCODE_SM20="
 fi
 
+# 30 Deprecated in 11+
+if [ $CUDA_VERSION_MAJOR -gt 10 ]; then
+    export MAKE_ARGS="$MAKE_ARGS GENCODE_SM30="
+fi
+
 export MAKE_ARGS="$MAKE_ARGS CUBLAS_LIB=cublas_static CUDNN_LIB=cudnn_static"
 export GENCODE_FLAGS=$CUDA_CPPFLAGS
 

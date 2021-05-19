@@ -32,6 +32,7 @@
 #define igzstream ifstream	// added by,
 
 #include "andersen.cu"		// added by Rupesh Nasre on Dec 27, 2012.
+//#include "util.h"
 using namespace std;
     
 // check that the obtained solution is a subset of the desired solution. Useful when trying to 

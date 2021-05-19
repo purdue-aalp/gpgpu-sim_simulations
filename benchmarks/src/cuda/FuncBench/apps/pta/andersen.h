@@ -155,7 +155,7 @@ extern "C" void createGraph(const uint numObjectVars, const uint maxOffset);
 extern "C" uint andersen(uint numVars);
 
 
- __host__ __noinline__ uint getBlocks() {
+ __host__ inline uint getBlocks() {
    if (DEBUG) {
      return 1;
    }
@@ -164,13 +164,13 @@ extern "C" uint andersen(uint numVars);
   return deviceProp.multiProcessorCount;	
 }
 
- __host__ __noinline__ uint getThreadsPerBlock(uint intended) {
+ __host__ inline uint getThreadsPerBlock(uint intended) {
      return DEBUG ? WARP_SIZE : intended;
  }
  
 //////////// utility functions used in both the CPU and GPU /////////
 
-__device__ __host__ __noinline__ const char* getName(uint rel) {
+__device__ __host__ inline const char* getName(uint rel) {
   if (rel == PTS) return "PTS";
   if (rel == NEXT_DIFF_PTS) return "NEXT_DIFF_PTS";
   if (rel == CURR_DIFF_PTS) return "CURR_DIFF_PTS";
@@ -182,65 +182,65 @@ __device__ __host__ __noinline__ const char* getName(uint rel) {
 }
 
 // ellapsed time, in milliseconds
-__device__ __host__ __noinline__ uint getEllapsedTime(const clock_t& startTime) {
+__device__ __host__ inline uint getEllapsedTime(const clock_t& startTime) {
   //TODO: this code should depend on whether it is executing on the GPU or the CPU
   return (int) (1000.0f * (clock() - startTime) / CLOCKS_PER_SEC);
 }
 
-__device__ __host__ static __noinline__ int isBitActive(uint word, uint bit) {
+__device__ __host__ static inline int isBitActive(uint word, uint bit) {
   return word & (1 << bit);
 }
 
-__device__ __host__ static __noinline__ uint isOdd(uint num) {
+__device__ __host__ static inline uint isOdd(uint num) {
   return num & 1;
 }
 
-__device__ __host__ static __noinline__ uint mul32(uint num) {
+__device__ __host__ static inline uint mul32(uint num) {
   return num << LOG2_32;
 }
 
-__device__ __host__ static __noinline__ uint div32(uint num) {
+__device__ __host__ static inline uint div32(uint num) {
   return num >> LOG2_32;
 }
 
-__device__ __host__ static __noinline__ uint mod32(uint num) {
+__device__ __host__ static inline uint mod32(uint num) {
   return num & 31;
 }
 
 // base has to be a power of two
-__device__ __host__ static __noinline__ uint mod(uint num, uint base) {
+__device__ __host__ static inline uint mod(uint num, uint base) {
   return num & (base - 1);
 }
 
-__device__ __host__ static __noinline__ uint getFirst(uint pair) {
+__device__ __host__ static inline uint getFirst(uint pair) {
   return pair >> 16;
 }
 
-__device__ __host__ static __noinline__ uint getSecond(uint pair) {
+__device__ __host__ static inline uint getSecond(uint pair) {
   return (pair & 0x0000FFFF);
 }
 
-__device__ __host__ static __noinline__ uint createPair(uint first, uint second) {
+__device__ __host__ static inline uint createPair(uint first, uint second) {
   return (first << 16) | second;
 }
 
 // related to GEP constraints
-__device__ __host__ static __noinline__ uint offset(const uint srcOffset) {
+__device__ __host__ static inline uint offset(const uint srcOffset) {
   return srcOffset & OFFSET_MASK;
 }
 
 // related to GEP constraints
-__device__ __host__ static __noinline__ uint id(const uint srcOffset) {
+__device__ __host__ static inline uint id(const uint srcOffset) {
   return srcOffset >> OFFSET_BITS;
 }
 
-__device__ __host__ static __noinline__ uint idOffset(const uint src, const uint offset) {
+__device__ __host__ static inline uint idOffset(const uint src, const uint offset) {
   return offset | (src << OFFSET_BITS);
 }
 
 // e.g. for powerOfTwo==32: 4 => 32, 32 => 32, 33 => 64
 // second parameter has to be a power of two
-__device__ __host__ static __noinline__ uint roundToNextMultipleOf(uint num, uint powerOfTwo) {
+__device__ __host__ static inline uint roundToNextMultipleOf(uint num, uint powerOfTwo) {
   if ((num & (powerOfTwo - 1)) == 0) {
     return num;
   }
@@ -249,7 +249,7 @@ __device__ __host__ static __noinline__ uint roundToNextMultipleOf(uint num, uin
 
 // e.g. for powerOfTwo==32: 0 => 0, 4 => 0, 32 => 32, 33 => 32
 // second parameter has to be a power of two
-__device__ __host__ static __noinline__ uint roundToPrevMultipleOf(uint num, uint powerOfTwo) {
+__device__ __host__ static inline uint roundToPrevMultipleOf(uint num, uint powerOfTwo) {
   if ((num & (powerOfTwo - 1)) == 0) {
     return num;
   }
@@ -257,7 +257,7 @@ __device__ __host__ static __noinline__ uint roundToPrevMultipleOf(uint num, uin
 }
 
 // The second parameter has to be a power of 2
-__device__ __host__ static __noinline__ int isMultipleOf(uint num, uint powerOfTwo) {
+__device__ __host__ static inline int isMultipleOf(uint num, uint powerOfTwo) {
   return !(num & (powerOfTwo - 1));
 }
 #endif

@@ -110,8 +110,8 @@ __device__ uint __min__ = 0;
 __device__ bool __done__ = true;
 __device__ uint __error__;
 
-//__device__ uint __worklistIndex0__ = 0;
-//__device__ uint __worklistIndex1__ = 1;
+__device__ uint __worklistIndex0__ = 0;
+__device__ uint __worklistIndex1__ = 1;
 
 uint createTime = 0;
 
@@ -178,13 +178,36 @@ __device__  uint getThreadsPerGrid() {
   return mul32(getWarpsPerGrid());
 }
 
-//__device__  uint getBlockIdInGrid(){
-//  return blockIdx.x;
-//}
-//
-//__device__  uint getBlocksPerGrid(){
-//  return gridDim.x;
-//}
+__device__  uint getBlockIdInGrid(){
+  return blockIdx.x;
+}
+
+__device__  uint getBlocksPerGrid(){
+  return gridDim.x;
+}
+
+/**
+ * Get and increment the current worklist index
+ * Granularity: warp
+ * @param delta Number of elements to be retrieved at once
+ * @return Worklist index 'i'. All the work items in the [i, i + delta) interval are guaranteed
+ * to be assigned to the current warp.
+ */
+__device__ inline uint getAndIncrement(const uint delta) {
+  __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
+  if (isFirstThreadOfWarp()) {
+    _shared_[threadIdx.y] = atomicAdd(&__worklistIndex0__, delta);
+  }
+  return _shared_[threadIdx.y];
+}
+
+__device__ inline uint getAndIncrement(uint* counter, uint delta) {
+  __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
+  if (isFirstThreadOfWarp()) {
+    _shared_[threadIdx.y] = atomicAdd(counter, delta);
+  }
+  return _shared_[threadIdx.y];
+}
 
 __device__ void syncAllThreads() {
   __syncthreads();

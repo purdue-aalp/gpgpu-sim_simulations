@@ -635,6 +635,13 @@ ispass-2009:
         - ispass-2009-WP:
             - < ./data/args
 
+FuncBench:
+    exec_dir: "../../benchmarks/bin/$CUDA_VERSION/release/"
+    data_dirs: "../../benchmarks/data_dirs/cuda/FuncBench/"
+    execs:
+        - FuncBench-pta:
+            - ./data/pine_nodes.txt ./data/pine_constraints_after_hcd.txt ./data/pine_hcd.txt ./data/pine_correct_soln_001.txt 1 1
+
 lonestargpu-2.0:
     exec_dir: "../../benchmarks/bin/$CUDA_VERSION/release/"
     data_dirs: "../../benchmarks/data_dirs/cuda/lonestargpu-2.0/"

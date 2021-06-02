@@ -25,12 +25,12 @@
 //__device__ uint __worklistIndex0__ = 0;
 //__device__ uint __worklistIndex1__ = 1;
 
-extern __device__ uint nextPowerOfTwo(uint v) ;
-
-extern __device__ uint __count(int predicate) ;
-
-extern __device__ uint isFirstThreadOfWarp();
-
+//extern __device__ uint nextPowerOfTwo(uint v) ;
+//
+//extern __device__ uint __count(int predicate) ;
+//
+//extern __device__ uint isFirstThreadOfWarp();
+//
 //extern __device__  uint getWarpIdInGrid();
 //
 //extern __device__  uint isFirstWarpOfGrid();

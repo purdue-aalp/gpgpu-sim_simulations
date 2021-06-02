@@ -22,19 +22,19 @@
 */
 #include "util.h"
 
-extern __device__ uint nextPowerOfTwo(uint v) {
-  return 1U << (uintSize * 8 - __clz(v - 1));
-}
-
-extern __device__ uint __count(int predicate) {
-  const uint ballot = __ballot_sync(0xFFFFFFFF, predicate);
-  return __popc(ballot);
-}
-
-__device__  uint isFirstThreadOfWarp(){
-  return !threadIdx.x;
-}
-
+//extern __device__ uint nextPowerOfTwo(uint v) {
+//  return 1U << (uintSize * 8 - __clz(v - 1));
+//}
+//
+//extern __device__ uint __count(int predicate) {
+//  const uint ballot = __ballot_sync(0xFFFFFFFF, predicate);
+//  return __popc(ballot);
+//}
+//
+//__device__  uint isFirstThreadOfWarp(){
+//  return !threadIdx.x;
+//}
+//
 //__device__  uint getWarpIdInGrid(){
 //  return (blockIdx.x * (blockDim.x * blockDim.y / WARP_SIZE) + threadIdx.y);
 //}

@@ -214,7 +214,9 @@ lonestargpu-2.0:
 
 FuncBench:
 	$(setenv) make $(make_args) noinline=$(noinline) -C cuda/FuncBench all
-	mv cuda/FuncBench/apps/pta/pta $(BINDIR)/$(BINSUBDIR)/FuncBench-pta
+	#mv cuda/FuncBench/apps/pta/pta $(BINDIR)/$(BINSUBDIR)/FuncBench-pta
+	mv cuda/FuncBench/apps/pta-inline/pta-inline $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-inline
+	mv cuda/FuncBench/apps/pta-org/pta-org $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-org
 
 parboil:
 	make data

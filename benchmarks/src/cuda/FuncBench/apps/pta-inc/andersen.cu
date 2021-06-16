@@ -212,7 +212,8 @@ extern __device__ INLINE uint getBlocksPerGrid();
   return gridDim.x;
 }*/
 
-__device__ INLINE2 void syncAllThreads() {
+extern __device__ INLINE2 void syncAllThreads();
+/*__device__ INLINE2 void syncAllThreads() {
   __syncthreads();
   uint to = getBlocksPerGrid() - 1;
   if (isFirstThreadOfBlock()) {      
@@ -222,22 +223,24 @@ __device__ INLINE2 void syncAllThreads() {
     }
   }
   __syncthreads();
-}
+}*/
 
-__device__ INLINE2 uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i) {
+extern __device__ INLINE2 uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i);
+/*__device__ INLINE2 uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i) {
   if (threadIdx.x == i) {
     _shared_[threadIdx.y] = myVal;
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ INLINE2 uint getValAtThread(const uint myVal, const uint i) {
+extern __device__ INLINE2 uint getValAtThread(const uint myVal, const uint i);
+/*__device__ INLINE2 uint getValAtThread(const uint myVal, const uint i) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (threadIdx.x == i) {
     _shared_[threadIdx.y] = myVal;
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
 /*
  * Forward declarations
@@ -582,7 +585,8 @@ extern __device__ INLINE void bitonicSort(volatile uint* const _shared_, const u
   }
 }*/
 
-__device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
+extern __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to);
+/*__device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
   uint idInBlock = getThreadIdInBlock();
   for (int size = 2; size <= to; size <<= 1) {
     for (int stride = size / 2; stride > 0; stride >>= 1) {
@@ -595,7 +599,7 @@ __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
       }
     }
   }
-}
+}*/
 
 /**
  * Sort an array in ascending order.
@@ -603,7 +607,8 @@ __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
  * @param _shared_ list of integers
  * @param to size of the sublist we want to process
  */
-__device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
+extern __device__ INLINE2 void blockSort(volatile uint* _shared_, uint to);
+/*__device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
   uint size = max(nextPowerOfTwo(to), 32);
   uint id = getThreadIdInBlock();
   for (int i = to + id; i < size; i += getThreadsPerBlock()) {
@@ -611,7 +616,7 @@ __device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
   }
   blockBitonicSort(_shared_, size);  
   __syncthreads();
-}
+}*/
 
 /**
  * Remove duplicates on a sorted sequence, equivalent to Thrust 'unique' function but uses one warp.
@@ -640,7 +645,8 @@ extern __device__ INLINE uint unique(volatile uint* const _shared_, uint to);
   return startPos;
 }*/
 
-__device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to) {
+extern __device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to);
+/*__device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to) {
   const uint size = max(nextPowerOfTwo(to), 32);
   for (int i = to + threadIdx.x; i < size; i += WARP_SIZE) {
     _shared_[i] = NIL;
@@ -648,7 +654,7 @@ __device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const ui
   bitonicSort(_shared_, size);
   uint ret = unique(_shared_, size);
   return (size > to) ? ret - 1 : ret;
-}
+}*/
 
 __device__ INLINE2 void print(uint* m, const uint size) {
   if (!isFirstThreadOfWarp())
@@ -995,7 +1001,8 @@ __global__ void checkForErrors(uint rel) {
   }
 }
 
-__device__ INLINE2 uint hashCode(uint index) {
+extern __device__ INLINE2 uint hashCode(uint index);
+/*__device__ INLINE2 uint hashCode(uint index) {
   __shared__ uint _sh_[DEF_THREADS_PER_BLOCK];
   volatile uint* _shared_ = &_sh_[threadIdx.y * WARP_SIZE];
   uint myRet = 0;
@@ -1027,9 +1034,10 @@ __device__ INLINE2 uint hashCode(uint index) {
     _shared_[threadIdx.x] ^= _shared_[threadIdx.x + WARP_SIZE / 8];
   }
   return _shared_[0] ^ _shared_[1] ^ _shared_[2] ^ _shared_[3];
-}
+}*/
 
-__device__ INLINE2 uint equal(uint index1, uint index2) {
+extern __device__ INLINE2 uint equal(uint index1, uint index2);
+/*__device__ INLINE2 uint equal(uint index1, uint index2) {
   uint bits1 = __graphGet__(index1 + threadIdx.x);
   uint bits2 = __graphGet__(index2 + threadIdx.x);
   while (__all_sync(0xFFFFFFFF,(threadIdx.x == NEXT) || (bits1 == bits2))) {
@@ -1042,7 +1050,7 @@ __device__ INLINE2 uint equal(uint index1, uint index2) {
     bits2 = __graphGet__(index2 + threadIdx.x);
   }
   return 0;
-}
+}*/
 
 __device__ INLINE2 uint size(uint var, uint rel) {
   __shared__ uint _sh_[DEF_THREADS_PER_BLOCK];
@@ -1158,7 +1166,8 @@ __device__ INLINE2 void unionToCopyInv(const uint to, const uint fromIndex, uint
   }
 }
 
-__device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel) {  
+extern __device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel);
+/*__device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel) {  
   while (1) {
     uint newIndex = fromNext == NIL ? NIL : mallocIn(toRel);    
     uint val = threadIdx.x == NEXT ? newIndex : fromBits;
@@ -1170,10 +1179,11 @@ __device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const 
     fromBits = __graphGet__(fromNext + threadIdx.x);
     fromNext = __graphGet__(fromNext + NEXT);        
   } 
-}
+}*/
 
 // toRel = any non-static relationship
-__device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fromIndex) {
+extern __device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fromIndex);
+/*__device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fromIndex) {
   uint toIndex = getHeadIndex(to, toRel);
   uint fromBits = __graphGet__(fromIndex + threadIdx.x); 
   uint fromBase = __graphGet__(fromIndex + BASE);
@@ -1237,7 +1247,7 @@ __device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fro
       toNext = __graphGet__(toNext + NEXT);      
     }
   } 
-}
+}*/
 
 // WATCH OUT: ASSUMES fromRel==toRel
 // like unionTo, but reusing the elements of 'from' (introduces sharing of elements)

@@ -87,7 +87,8 @@ __constant__ uint __numHcdTable__;
 /**
  * Representative array
  */
-__constant__ volatile uint* __rep__; // HAS to be volatile
+extern __constant__ uint* __rep__; // HAS to be volatile
+//__constant__ volatile uint* __rep__; // HAS to be volatile
 
 /**
  * array of elements containing all the edges in the graph.
@@ -97,7 +98,8 @@ extern __constant__ uint* __edges__;
 extern __constant__ uint* __graph__;
 //__constant__ uint* __graph__;
 
-__constant__  uint* __lock__;
+extern __constant__  uint* __lock__;
+//__constant__  uint* __lock__;
 
 __constant__ uint* __key__;
 __constant__ uint* __val__;
@@ -106,15 +108,18 @@ __device__ uint __numKeysCounter__ = 0;
 __device__ uint __numKeys__;
 __constant__ uint* __currPtsHead__;
 
-__device__ uint __counter__ = 0;
+extern __device__ uint __counter__;
+//__device__ uint __counter__ = 0;
 __device__ uint __max__ = 0;
 __device__ uint __min__ = 0;
 
 __device__ bool __done__ = true;
 __device__ uint __error__;
 
-__device__ uint __worklistIndex0__ = 0;
-__device__ uint __worklistIndex1__ = 1;
+extern __device__ uint __worklistIndex0__;
+extern __device__ uint __worklistIndex1__;
+//__device__ uint __worklistIndex0__ = 0;
+//__device__ uint __worklistIndex1__ = 1;
 
 uint createTime = 0;
 
@@ -456,21 +461,24 @@ extern __device__ INLINE uint mallocIn(uint rel);
  * @return Worklist index 'i'. All the work items in the [i, i + delta) interval are guaranteed
  * to be assigned to the current warp.
  */
-__device__ INLINE uint getAndIncrement(const uint delta) {
+
+extern __device__ INLINE uint getAndIncrement(const uint delta);
+/*__device__ INLINE uint getAndIncrement(const uint delta) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(&__worklistIndex0__, delta);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ INLINE uint getAndIncrement(uint* counter, uint delta) {
+extern __device__ INLINE uint getAndIncrement(uint* counter, uint delta);
+/*__device__ INLINE uint getAndIncrement(uint* counter, uint delta) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(counter, delta);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
 /**
  * Lock a given variable 
@@ -478,33 +486,39 @@ __device__ INLINE uint getAndIncrement(uint* counter, uint delta) {
  * @param var Id of the variable
  * @return A non-zero value if the operation succeeded
  */
-__device__ INLINE uint lock(const uint var) {
+extern __device__ INLINE uint lock(const uint var);
+/*__device__ INLINE uint lock(const uint var) {
   return __any_sync(0xFFFFFFFF,isFirstThreadOfWarp() && (atomicCAS(__lock__ + var, UNLOCKED, LOCKED) 
       == UNLOCKED));
-}
+}*/
 
 /**
  * Unlock a variable
  * Granularity: warp or thread
  * @param var Id of the variable
  */
-__device__ INLINE void unlock(const uint var) {
+extern __device__ INLINE void unlock(const uint var);
+/*__device__ INLINE void unlock(const uint var) {
   __lock__[var] = UNLOCKED;
-}
+}*/
 
-__device__ INLINE int isRep(const uint var) {
+extern __device__ INLINE int isRep(const uint var);
+/*__device__ INLINE int isRep(const uint var) {
   return __rep__[var] == var;
-}
+}*/
 
-__device__ INLINE void setRep(const uint var, const uint rep) {
+extern __device__ INLINE void setRep(const uint var, const uint rep);
+/*__device__ INLINE void setRep(const uint var, const uint rep) {
   __rep__[var] = rep;
-}
+}*/
 
-__device__ INLINE uint getRep(const uint var) {
+extern __device__ INLINE uint getRep(const uint var);
+/*__device__ INLINE uint getRep(const uint var) {
   return __rep__[var];
-}
+}*/
 
-__device__ INLINE uint getRepRec(const uint var) {
+extern __device__ INLINE uint getRepRec(const uint var);
+/*__device__ INLINE uint getRepRec(const uint var) {
   uint rep = var;
   uint repRep = __rep__[rep];
   while (repRep != rep) {
@@ -512,7 +526,7 @@ __device__ INLINE uint getRepRec(const uint var) {
     repRep = __rep__[rep];
   } 
   return rep;
-}
+}*/
 
 __device__ INLINE2 ulongint recordStartTime() {
   __shared__ volatile ulongint _ret_[MAX_WARPS_PER_BLOCK];
@@ -536,23 +550,26 @@ __device__ INLINE2 void recordElapsedTime(ulongint start){
   }
 }
 
-__device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits) {
+extern __device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits);
+/*__device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits) {
   uint ret = mul960(base) + mul32(word);
   return (isBitActive(bits, threadIdx.x)) ? __rep__[ret + threadIdx.x] : NIL;
-}
+}*/
 
-__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
+extern __device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir);
+/*__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
   uint n1 = *keyA;
   uint n2 = *keyB;
   if ((n1 < n2) != dir) {
     *keyA = n2;
     *keyB = n1;
   }
-}
+}*/
 
 // Bitonic Sort, in ascending order using one WARP
 // precondition: size of _shared_ has to be a power of 2
-__device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to) {
+extern __device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to);
+/*__device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to) {
   for (int size = 2; size <= to; size <<= 1) {
     for (int stride = size / 2; stride > 0; stride >>= 1) {
       for (int id = threadIdx.x; id < (to / 2); id += WARP_SIZE) {
@@ -563,7 +580,7 @@ __device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to)
       }
     }
   }
-}
+}*/
 
 __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
   uint idInBlock = getThreadIdInBlock();
@@ -608,7 +625,8 @@ __device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
  * @param to size of the sublist we want to process
  * @return number of unique elements in the input.
  */
-__device__ INLINE uint unique(volatile uint* const _shared_, uint to) {
+extern __device__ INLINE uint unique(volatile uint* const _shared_, uint to);
+/*__device__ INLINE uint unique(volatile uint* const _shared_, uint to) {
   uint startPos = 0;
   uint myMask = (1 << (threadIdx.x + 1)) - 1;
   for (int id = threadIdx.x; id < to; id += WARP_SIZE) {
@@ -620,7 +638,7 @@ __device__ INLINE uint unique(volatile uint* const _shared_, uint to) {
     startPos += __popc(fresh);
   }
   return startPos;
-}
+}*/
 
 __device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to) {
   const uint size = max(nextPowerOfTwo(to), 32);
@@ -1348,7 +1366,8 @@ __device__ INLINE2 uint insert(const uint index, const uint var, const int rel) 
   return addVirtualElement(index, base, myBits, rel);
 }
 
-__device__ INLINE uint resetWorklistIndex() {
+extern __device__ INLINE uint resetWorklistIndex();
+/*__device__ INLINE uint resetWorklistIndex() {
   __syncthreads();
   uint numBlocks = getBlocksPerGrid();
   if (isFirstThreadOfBlock() && atomicInc(&__counter__, numBlocks - 1) == (numBlocks - 1)) {
@@ -1357,7 +1376,7 @@ __device__ INLINE uint resetWorklistIndex() {
     return 1;
   }  
   return 0;
-}
+}*/
 
 __global__ void addEdges(uint* __key__, uint* __keyAux__, uint* __val__, const uint to,  uint rel) {
   __shared__ uint _sh_[WARPS_PER_BLOCK(DEF_THREADS_PER_BLOCK) * WARP_SIZE];

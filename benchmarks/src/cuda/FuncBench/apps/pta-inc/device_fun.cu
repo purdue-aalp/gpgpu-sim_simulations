@@ -242,3 +242,141 @@ __device__ INLINE uint mallocIn(uint rel) {
   //printf("WTF! (%u)", rel);
   return 0;
 }
+
+//Note: Section 4 inline functions
+
+/**
+ * Get and increment the current worklist index
+ * Granularity: warp
+ * @param delta Number of elements to be retrieved at once 
+ * @return Worklist index 'i'. All the work items in the [i, i + delta) interval are guaranteed
+ * to be assigned to the current warp.
+ */
+__device__ uint __worklistIndex0__ = 0;
+__device__ uint __worklistIndex1__ = 1;
+__device__ INLINE uint getAndIncrement(const uint delta) {
+  __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
+  if (isFirstThreadOfWarp()) {
+    _shared_[threadIdx.y] = atomicAdd(&__worklistIndex0__, delta);
+  }
+  return _shared_[threadIdx.y];
+}
+
+__device__ INLINE uint getAndIncrement(uint* counter, uint delta) {
+  __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
+  if (isFirstThreadOfWarp()) {
+    _shared_[threadIdx.y] = atomicAdd(counter, delta);
+  }
+  return _shared_[threadIdx.y];
+}
+
+__constant__  uint* __lock__;
+__constant__ volatile uint* __rep__; // HAS to be volatile
+/**
+ * Lock a given variable 
+ * Granularity: warp
+ * @param var Id of the variable
+ * @return A non-zero value if the operation succeeded
+ */
+ __device__ INLINE uint lock(const uint var) {
+  return __any_sync(0xFFFFFFFF,isFirstThreadOfWarp() && (atomicCAS(__lock__ + var, UNLOCKED, LOCKED) 
+      == UNLOCKED));
+}
+
+/**
+ * Unlock a variable
+ * Granularity: warp or thread
+ * @param var Id of the variable
+ */
+__device__ INLINE void unlock(const uint var) {
+  __lock__[var] = UNLOCKED;
+}
+
+__device__ INLINE int isRep(const uint var) {
+  return __rep__[var] == var;
+}
+
+__device__ INLINE void setRep(const uint var, const uint rep) {
+  __rep__[var] = rep;
+}
+
+__device__ INLINE uint getRep(const uint var) {
+  return __rep__[var];
+}
+
+__device__ INLINE uint getRepRec(const uint var) {
+  uint rep = var;
+  uint repRep = __rep__[rep];
+  while (repRep != rep) {
+    rep = repRep;
+    repRep = __rep__[rep];
+  } 
+  return rep;
+}
+
+__device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits) {
+  uint ret = mul960(base) + mul32(word);
+  return (isBitActive(bits, threadIdx.x)) ? __rep__[ret + threadIdx.x] : NIL;
+}
+
+__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
+  uint n1 = *keyA;
+  uint n2 = *keyB;
+  if ((n1 < n2) != dir) {
+    *keyA = n2;
+    *keyB = n1;
+  }
+}
+
+// Bitonic Sort, in ascending order using one WARP
+// precondition: size of _shared_ has to be a power of 2
+__device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to) {
+  for (int size = 2; size <= to; size <<= 1) {
+    for (int stride = size / 2; stride > 0; stride >>= 1) {
+      for (int id = threadIdx.x; id < (to / 2); id += WARP_SIZE) {
+        const uint myDir = ((id & (size / 2)) == 0);
+        uint pos = 2 * id - mod(id, stride);
+        volatile uint* start = _shared_  + pos;
+        swap(start, start + stride, myDir);
+      }
+    }
+  }
+}
+
+/**
+ * Remove duplicates on a sorted sequence, equivalent to Thrust 'unique' function but uses one warp.
+ * If there are NILS, they are treated like any other number
+ * precondition: the input list is sorted
+ * precondition: to >= 32
+ * precondition: shared_[-1] exists and is equal to NIL
+ * Granularity: warp
+ *
+ * @param _shared_ list of integers
+ * @param to size of the sublist we want to process
+ * @return number of unique elements in the input.
+ */
+__device__ INLINE uint unique(volatile uint* const _shared_, uint to) {
+  uint startPos = 0;
+  uint myMask = (1 << (threadIdx.x + 1)) - 1;
+  for (int id = threadIdx.x; id < to; id += WARP_SIZE) {
+    uint myVal = _shared_[id];
+    uint fresh = __ballot_sync(0xFFFFFFFF, myVal != _shared_[id - 1]);
+    // pos = starting position + number of 1's to my right (incl. myself) minus one
+    uint pos = startPos + __popc(fresh & myMask) - 1;
+    _shared_[pos] = myVal;
+    startPos += __popc(fresh);
+  }
+  return startPos;
+}
+
+__device__ uint __counter__ = 0;
+__device__ INLINE uint resetWorklistIndex() {
+  __syncthreads();
+  uint numBlocks = getBlocksPerGrid();
+  if (isFirstThreadOfBlock() && atomicInc(&__counter__, numBlocks - 1) == (numBlocks - 1)) {
+    __worklistIndex0__ = 0;
+    __counter__ = 0;
+    return 1;
+  }  
+  return 0;
+}

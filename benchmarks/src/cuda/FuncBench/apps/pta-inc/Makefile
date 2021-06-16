@@ -2,7 +2,7 @@ TOPLEVEL := ../..
 BIN	:= $(TOPLEVEL)/bin
 APP=pta-inc
 
-CFLAGS= -DINLINE= -DINLINE2=
+CFLAGS= -DINLINE=__noinline__ -DINLINE2=__noinline__
 
 #pta: main.cu andersen.h andersen.cu
 #	nvcc $(CFLAGS) -gencode arch=compute_70,code=sm_70 main.cu -o pta-inc

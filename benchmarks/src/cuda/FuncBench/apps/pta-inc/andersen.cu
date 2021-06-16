@@ -2465,7 +2465,7 @@ __host__ void printVector(const Vector& v, uint size) {
 }
 
 __host__ void initializeEdges(uint* &constraintsName, uint &constraintNumber, uint rel) {
-  dim3 dimInitialize(WARP_SIZE, getThreadsPerBlock(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimInitialize(WARP_SIZE, getThreadsPerBlockHost(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
   uint* constraints;
   uint numConstraints;
   cudaSafeCall(cudaMemcpyFromSymbol(&constraints, constraintsName, sizeof(uint*)));
@@ -2488,7 +2488,7 @@ extern "C" void createGraph(const uint numObjectVars, const uint maxOffset) {
   setbuf(stdout, NULL);
   printf("[dev]  Creating graph and masks out of constraints...");
   const uint startTime = clock();
-  dim3 dim(WARP_SIZE, getThreadsPerBlock(DEF_THREADS_PER_BLOCK)/ WARP_SIZE);
+  dim3 dim(WARP_SIZE, getThreadsPerBlockHost(DEF_THREADS_PER_BLOCK)/ WARP_SIZE);
 
   initialize<<<getBlocks(), dim>>>();
   checkKernelErrors("ERROR at initialize");
@@ -2555,12 +2555,12 @@ extern "C" uint andersen(uint numVars) {
   uint copyInvTime = 0;
   uint storeInvTime = 0;
   uint gepInvTime = 0;
-  dim3 dim512(WARP_SIZE, getThreadsPerBlock(512) / WARP_SIZE);
-  dim3 dimUpdate2(WARP_SIZE, getThreadsPerBlock(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimHcd(WARP_SIZE, getThreadsPerBlock(HCD_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimCopy(WARP_SIZE, getThreadsPerBlock(COPY_INV_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimStore(WARP_SIZE, getThreadsPerBlock(STORE_INV_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimGep(WARP_SIZE, getThreadsPerBlock(GEP_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dim512(WARP_SIZE, getThreadsPerBlockHost(512) / WARP_SIZE);
+  dim3 dimUpdate2(WARP_SIZE, getThreadsPerBlockHost(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimHcd(WARP_SIZE, getThreadsPerBlockHost(HCD_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimCopy(WARP_SIZE, getThreadsPerBlockHost(COPY_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimStore(WARP_SIZE, getThreadsPerBlockHost(STORE_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimGep(WARP_SIZE, getThreadsPerBlockHost(GEP_INV_THREADS_PER_BLOCK) / WARP_SIZE);
  
   device_vector<uint> key(MAX_HASH_SIZE);
   uint* ptr = raw_pointer_cast(&key[0]);

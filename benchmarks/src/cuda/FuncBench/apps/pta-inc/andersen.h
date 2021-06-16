@@ -164,7 +164,7 @@ extern "C" uint andersen(uint numVars);
   return deviceProp.multiProcessorCount;	
 }
 
- __host__ inline uint getThreadsPerBlock(uint intended) {
+ __host__ inline uint getThreadsPerBlockHost(uint intended) {
      return DEBUG ? WARP_SIZE : intended;
  }
  

@@ -486,14 +486,14 @@ __device__ char* __errorMsg__;
 //  return (isBitActive(bits, threadIdx.x)) ? __rep__[ret + threadIdx.x] : NIL;
 //}
 //
-//__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
-//  uint n1 = *keyA;
-//  uint n2 = *keyB;
-//  if ((n1 < n2) != dir) {
-//    *keyA = n2;
-//    *keyB = n1;
-//  }
-//}
+__device__ inline void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
+  uint n1 = *keyA;
+  uint n2 = *keyB;
+  if ((n1 < n2) != dir) {
+    *keyA = n2;
+    *keyB = n1;
+  }
+}
 //
 //// Bitonic Sort, in ascending order using one WARP
 //// precondition: size of _shared_ has to be a power of 2
@@ -509,38 +509,38 @@ __device__ char* __errorMsg__;
 //    }
 //  }
 //}
-//
-//__device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
-//  uint idInBlock = getThreadIdInBlock();
-//  for (int size = 2; size <= to; size <<= 1) {
-//    for (int stride = size / 2; stride > 0; stride >>= 1) {
-//      __syncthreads();
-//      for (int id = idInBlock; id < (to / 2); id += getThreadsPerBlock()) {
-//        const uint myDir = ((id & (size / 2)) == 0);
-//        uint pos = 2 * id - mod(id, stride);
-//        volatile uint* start = _shared_ + pos;
-//        swap(start, start + stride, myDir);
-//      }
-//    }
-//  }
-//}
-//
-///**
-// * Sort an array in ascending order.
-// * Granularity: block
-// * @param _shared_ list of integers
-// * @param to size of the sublist we want to process
-// */
-//__device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
-//  uint size = max(nextPowerOfTwo(to), 32);
-//  uint id = getThreadIdInBlock();
-//  for (int i = to + id; i < size; i += getThreadsPerBlock()) {
-//    _shared_[i] = NIL;
-//  }
-//  blockBitonicSort(_shared_, size);  
-//  __syncthreads();
-//}
-//
+
+__device__ inline void blockBitonicSort(volatile uint* _shared_, uint to) {
+  uint idInBlock = getThreadIdInBlock();
+  for (int size = 2; size <= to; size <<= 1) {
+    for (int stride = size / 2; stride > 0; stride >>= 1) {
+      __syncthreads();
+      for (int id = idInBlock; id < (to / 2); id += getThreadsPerBlock()) {
+        const uint myDir = ((id & (size / 2)) == 0);
+        uint pos = 2 * id - mod(id, stride);
+        volatile uint* start = _shared_ + pos;
+        swap(start, start + stride, myDir);
+      }
+    }
+  }
+}
+
+/**
+ * Sort an array in ascending order.
+ * Granularity: block
+ * @param _shared_ list of integers
+ * @param to size of the sublist we want to process
+ */
+__device__ inline void blockSort(volatile uint* _shared_, uint to) {
+  uint size = max(nextPowerOfTwo(to), 32);
+  uint id = getThreadIdInBlock();
+  for (int i = to + id; i < size; i += getThreadsPerBlock()) {
+    _shared_[i] = NIL;
+  }
+  blockBitonicSort(_shared_, size);
+  __syncthreads();
+}
+
 ///**
 // * Remove duplicates on a sorted sequence, equivalent to Thrust 'unique' function but uses one warp.
 // * If there are NILS, they are treated like any other number
@@ -1861,58 +1861,58 @@ __global__ void createOffsetMasks(int numObjectVars, uint maxOffset) {
 //  unlock(var2);
 //}
 //
-///**
-// * Merge a list of pointer-equivalent variables
-// * Granularity: block
-// * @param _list_ Pointer-equivalent variables
-// * @param _listSize_ Number of variables to be processed
-// */
-//__device__ INLINE2 void mergeCycle(const uint* const _list_, const uint _listSize_) {
-//  __shared__ uint _counter_;
-//  if (!_listSize_) {
-//    __syncthreads();
-//    return;
-//  }
-//  // 'ry' will be the representative of this cycle
-//  uint ry = _list_[0];  
-//  if (_listSize_ == 1) {
-//    if (isFirstWarpOfBlock()) {
-//      unlock(ry);
-//    }    
-//    __syncthreads();
-//    return;
-//  }
-//  uint warpsPerBlock = getWarpsPerBlock();
-//  if (_listSize_ > warpsPerBlock) {
-//    // each warp chooses a local representative and then merges each popped worklist item with it.
-//    uint var1 = _list_[threadIdx.y];
-//    _counter_ = warpsPerBlock;
-//    __syncthreads();
-//    uint index = getAndIncrement(&_counter_, 1);
-//    while (index < _listSize_) {
-//      uint var2 = _list_[index];
-//      merge(var1, var2, ry);
-//      index = getAndIncrement(&_counter_, 1);
-//    }
-//  }
-//  __syncthreads();
-//  // the first warp merges the local representatives. This is actually faster (and simpler)
-//  // than performing a reduction of the list using the entire block, due to load imbalance.
-//  if (isFirstWarpOfBlock()) { 
-//    uint to = min(_listSize_, warpsPerBlock);
-//    for (int i = 1; i < to; i++) {
-//      uint var = _list_[i];
-//      merge(ry, var, ry);
-//    }    
-//    //reset CURR_PTS of the cycle representative to be PTS
-//    uint myBits = __graphGet__(getPtsHeadIndex(ry), threadIdx.x);
-//    __graphSet__(getCurrDiffPtsHeadIndex(ry), threadIdx.x, myBits); 
-//    __threadfence();    
-//    unlock(ry);
-//  }
-//  __syncthreads();  
-//}
-//
+/**
+ * Merge a list of pointer-equivalent variables
+ * Granularity: block
+ * @param _list_ Pointer-equivalent variables
+ * @param _listSize_ Number of variables to be processed
+ */
+__device__ inline void mergeCycle(const uint* const _list_, const uint _listSize_) {
+  __shared__ uint _counter_;
+  if (!_listSize_) {
+    __syncthreads();
+    return;
+  }
+  // 'ry' will be the representative of this cycle
+  uint ry = _list_[0];
+  if (_listSize_ == 1) {
+    if (isFirstWarpOfBlock()) {
+      unlock(ry);
+    }
+    __syncthreads();
+    return;
+  }
+  uint warpsPerBlock = getWarpsPerBlock();
+  if (_listSize_ > warpsPerBlock) {
+    // each warp chooses a local representative and then merges each popped worklist item with it.
+    uint var1 = _list_[threadIdx.y];
+    _counter_ = warpsPerBlock;
+    __syncthreads();
+    uint index = getAndIncrement(&_counter_, 1);
+    while (index < _listSize_) {
+      uint var2 = _list_[index];
+      merge(var1, var2, ry);
+      index = getAndIncrement(&_counter_, 1);
+    }
+  }
+  __syncthreads();
+  // the first warp merges the local representatives. This is actually faster (and simpler)
+  // than performing a reduction of the list using the entire block, due to load imbalance.
+  if (isFirstWarpOfBlock()) {
+    uint to = min(_listSize_, warpsPerBlock);
+    for (int i = 1; i < to; i++) {
+      uint var = _list_[i];
+      merge(ry, var, ry);
+    }
+    //reset CURR_PTS of the cycle representative to be PTS
+    uint myBits = __graphGet__(getPtsHeadIndex(ry), threadIdx.x);
+    __graphSet__(getCurrDiffPtsHeadIndex(ry), threadIdx.x, myBits);
+    __threadfence();
+    unlock(ry);
+  }
+  __syncthreads();
+}
+
 //// to be executed by one thread
 //__device__ INLINE2 uint lockVarRep(uint& var) {
 //  while (1) {
@@ -1939,41 +1939,41 @@ __global__ void createOffsetMasks(int numObjectVars, uint maxOffset) {
 //  }
 //}
 //
-///**
-// * Lock a list of variables
-// * Granularity: block
-// * @param _currVar_ List of variables to lock, sorted in ascending order
-// * @param _currVarSize_ Number of variables we want to process. At the end of the function,
-// * it stores the number of variables we were able to lock.
-// * @param _nextVar_ List where to add all the variables we could not lock
-// * @param _nextVarSize_ Number of variables we could not lock
-// */
-//__device__ INLINE2 void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_, 
-//    uint* _nextVarSize_) {
-//  __shared__ uint _count_;
-//  _count_ = 0;
-//  __syncthreads();
-//  for (int i = getThreadIdInBlock(); i < _currVarSize_; i+= getThreadsPerBlock()) {
-//    uint var = _currVar_[i];  
-//    // block culling to filter out some duplicates
-//    if (i && var == _currVar_[i - 1]) {
-//      continue;        
-//    }
-//    uint stat = lockVarRep(var);
-//    uint pos;
-//    if (stat == UNLOCKED) {
-//      pos = atomicAdd(&_count_, 1);
-//      _currVar_[pos] = var;
-//    } else if (stat != VAR(blockIdx.x)) { 
-//      uint pos = atomicAdd(_nextVarSize_, 1);
-//      _nextVar_[pos] = var;        
-//    }       
-//  }   
-//  __syncthreads();  
-//  _currVarSize_ = _count_; //first currVarSize positions are populated
-//  __syncthreads();  
-//}
-//
+/**
+ * Lock a list of variables
+ * Granularity: block
+ * @param _currVar_ List of variables to lock, sorted in ascending order
+ * @param _currVarSize_ Number of variables we want to process. At the end of the function,
+ * it stores the number of variables we were able to lock.
+ * @param _nextVar_ List where to add all the variables we could not lock
+ * @param _nextVarSize_ Number of variables we could not lock
+ */
+__device__ inline void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_,
+    uint* _nextVarSize_) {
+  __shared__ uint _count_;
+  _count_ = 0;
+  __syncthreads();
+  for (int i = getThreadIdInBlock(); i < _currVarSize_; i+= getThreadsPerBlock()) {
+    uint var = _currVar_[i];
+    // block culling to filter out some duplicates
+    if (i && var == _currVar_[i - 1]) {
+      continue;
+    }
+    uint stat = lockVarRep(var);
+    uint pos;
+    if (stat == UNLOCKED) {
+      pos = atomicAdd(&_count_, 1);
+      _currVar_[pos] = var;
+    } else if (stat != VAR(blockIdx.x)) {
+      uint pos = atomicAdd(_nextVarSize_, 1);
+      _nextVar_[pos] = var;
+    }
+  }
+  __syncthreads();
+  _currVarSize_ = _count_; //first currVarSize positions are populated
+  __syncthreads();
+}
+
 //// to be executed by one WARP
 //__device__ INLINE2 uint lockPtr(uint ptr) {
 //  __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
@@ -2046,42 +2046,42 @@ __global__ void createOffsetMasks(int numObjectVars, uint maxOffset) {
 //  } while (index != NIL);
 //}
 //
-///**
-// * Lock a list of (pointer) variables and their points-to sets
-// * Granularity: block 
-// */
-//__device__ INLINE2 void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_, 
-//    uint* _nextPtrSize_, uint* const _currVar_, uint* _currVarSize_, uint* const _nextVar_, 
-//    uint* _nextVarSize_) {
-//  const uint warpsPerBlock = getWarpsPerBlock();  
-//  for (int i = threadIdx.y; i < _currPtrSize_; i += warpsPerBlock) {
-//    uint ptr = _currPtr_[i];
-//    uint stat = lockPtr(ptr);
-//    if (stat != UNLOCKED && stat != VAR(blockIdx.x)) {       
-//      _currPtr_[i] = NIL;
-//      if (isFirstThreadOfWarp()) {
-//        uint pos = atomicAdd(_nextPtrSize_, 1);
-//        _nextPtr_[pos] = ptr;
-//      }          
-//    } else {
-//      decodeCurrPts(ptr, _currVar_, _currVarSize_, _nextVar_, _nextVarSize_);
-//    }
-//  }
-//  __syncthreads();   
-//}
-//
-//__device__ INLINE2 void unlockPtrs(const uint* const _list_, const uint _listSize_) {
-//  int init = getThreadIdInBlock();
-//  int inc = getThreadsPerBlock();
-//  for (int i = init; i < _listSize_; i += inc) {
-//    uint var = _list_[i];
-//    if (var != NIL) {
-//      // if it is locked by VAR(blockIdx.x), keep it that way
-//      atomicCAS(__lock__ + var, PTR(blockIdx.x), UNLOCKED);
-//    }
-//  }
-//  __syncthreads();
-//}
+/**
+ * Lock a list of (pointer) variables and their points-to sets
+ * Granularity: block
+ */
+__device__ inline void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_,
+    uint* _nextPtrSize_, uint* const _currVar_, uint* _currVarSize_, uint* const _nextVar_,
+    uint* _nextVarSize_) {
+  const uint warpsPerBlock = getWarpsPerBlock();
+  for (int i = threadIdx.y; i < _currPtrSize_; i += warpsPerBlock) {
+    uint ptr = _currPtr_[i];
+    uint stat = lockPtr(ptr);
+    if (stat != UNLOCKED && stat != VAR(blockIdx.x)) {
+      _currPtr_[i] = NIL;
+      if (isFirstThreadOfWarp()) {
+        uint pos = atomicAdd(_nextPtrSize_, 1);
+        _nextPtr_[pos] = ptr;
+      }
+    } else {
+      decodeCurrPts(ptr, _currVar_, _currVarSize_, _nextVar_, _nextVarSize_);
+    }
+  }
+  __syncthreads();
+}
+
+__device__ inline void unlockPtrs(const uint* const _list_, const uint _listSize_) {
+  int init = getThreadIdInBlock();
+  int inc = getThreadsPerBlock();
+  for (int i = init; i < _listSize_; i += inc) {
+    uint var = _list_[i];
+    if (var != NIL) {
+      // if it is locked by VAR(blockIdx.x), keep it that way
+      atomicCAS(__lock__ + var, PTR(blockIdx.x), UNLOCKED);
+    }
+  }
+  __syncthreads();
+}
 
 /**
  * Online phase of Hybrid Cycle Detection

@@ -2,7 +2,7 @@ TOPLEVEL := ../..
 BIN	:= $(TOPLEVEL)/bin
 APP=pta-sep
 
-CFLAGS= -DINLINE= -DINLINE2=
+CFLAGS= -DINLINE=__noinline__ -DINLINE2=__noinline__
 
 #pta: main.cu andersen.h andersen.cu
 #	nvcc $(CFLAGS) -gencode arch=compute_70,code=sm_70 main.cu -o pta-sep
@@ -18,13 +18,13 @@ CFLAGS= -DINLINE= -DINLINE2=
 
 # separate compilation
 pta-sep: device_fun.o main.o
-	nvcc --maxrregcount=62 $(CFLAGS) -gencode arch=compute_70,code=sm_70 device_fun.o main.o -o pta-sep
+	nvcc $(CFLAGS) -gencode arch=compute_70,code=sm_70 device_fun.o main.o -o pta-sep
 
 device_fun.o: device_fun.cu device_fun.h andersen.h andersen.cu
-	nvcc --maxrregcount=62 $(CFLAGS) -gencode arch=compute_70,code=sm_70 -dc device_fun.cu -o device_fun.o
+	nvcc $(CFLAGS) -gencode arch=compute_70,code=sm_70 -dc device_fun.cu -o device_fun.o
 
 main.o: main.cu
-	nvcc --maxrregcount=62 $(CFLAGS) -gencode arch=compute_70,code=sm_70 -dc main.cu -o main.o
+	nvcc $(CFLAGS) -gencode arch=compute_70,code=sm_70 -dc main.cu -o main.o
 
 #pta: util.o main.o
 #	nvcc --maxrregcount=62 -gencode arch=compute_70,code=sm_70 util.o main.o -o pta

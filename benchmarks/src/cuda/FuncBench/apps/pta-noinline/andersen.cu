@@ -486,7 +486,7 @@ __device__ INLINE uint decodeWord(const uint base, const uint word, const uint b
   return (isBitActive(bits, threadIdx.x)) ? __rep__[ret + threadIdx.x] : NIL;
 }
 
-__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
+__device__ inline void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
   uint n1 = *keyA;
   uint n2 = *keyB;
   if ((n1 < n2) != dir) {
@@ -510,7 +510,7 @@ __device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to)
   }
 }
 
-__device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
+__device__ inline void blockBitonicSort(volatile uint* _shared_, uint to) {
   uint idInBlock = getThreadIdInBlock();
   for (int size = 2; size <= to; size <<= 1) {
     for (int stride = size / 2; stride > 0; stride >>= 1) {
@@ -531,7 +531,7 @@ __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
  * @param _shared_ list of integers
  * @param to size of the sublist we want to process
  */
-__device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
+__device__ inline void blockSort(volatile uint* _shared_, uint to) {
   uint size = max(nextPowerOfTwo(to), 32);
   uint id = getThreadIdInBlock();
   for (int i = to + id; i < size; i += getThreadsPerBlock()) {
@@ -1867,7 +1867,7 @@ __device__ INLINE2 void merge(const uint var1, const uint var2, const uint rep) 
  * @param _list_ Pointer-equivalent variables
  * @param _listSize_ Number of variables to be processed
  */
-__device__ INLINE2 void mergeCycle(const uint* const _list_, const uint _listSize_) {
+__device__ inline void mergeCycle(const uint* const _list_, const uint _listSize_) {
   __shared__ uint _counter_;
   if (!_listSize_) {
     __syncthreads();
@@ -1948,7 +1948,7 @@ __device__ INLINE2 uint lockVarRep(uint& var) {
  * @param _nextVar_ List where to add all the variables we could not lock
  * @param _nextVarSize_ Number of variables we could not lock
  */
-__device__ INLINE2 void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_, 
+__device__ inline void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_, 
     uint* _nextVarSize_) {
   __shared__ uint _count_;
   _count_ = 0;
@@ -2050,7 +2050,7 @@ __device__ INLINE2 void decodeCurrPts(const uint x, uint* const _currVar_, uint*
  * Lock a list of (pointer) variables and their points-to sets
  * Granularity: block 
  */
-__device__ INLINE2 void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_, 
+__device__ inline void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_, 
     uint* _nextPtrSize_, uint* const _currVar_, uint* _currVarSize_, uint* const _nextVar_, 
     uint* _nextVarSize_) {
   const uint warpsPerBlock = getWarpsPerBlock();  
@@ -2070,7 +2070,7 @@ __device__ INLINE2 void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uin
   __syncthreads();   
 }
 
-__device__ INLINE2 void unlockPtrs(const uint* const _list_, const uint _listSize_) {
+__device__ inline void unlockPtrs(const uint* const _list_, const uint _listSize_) {
   int init = getThreadIdInBlock();
   int inc = getThreadsPerBlock();
   for (int i = init; i < _listSize_; i += inc) {

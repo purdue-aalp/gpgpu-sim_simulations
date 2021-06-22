@@ -1,5 +1,5 @@
 TOPLEVEL := .
-APPS := pta-inline pta-org pta-noinline pta-sep
+APPS := pta-inline pta-org pta-noinline pta-sep pta-lto
 #APPS := pta-inline pta-org
 #APPS := bfs bh dmr mst pta sp sssp
 INPUT_URL := http://iss.ices.utexas.edu/projects/galois/downloads/lonestargpu2-inputs.tar.bz2

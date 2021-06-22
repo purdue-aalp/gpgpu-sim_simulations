@@ -219,6 +219,7 @@ FuncBench:
 	mv cuda/FuncBench/apps/pta-org/pta-org $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-org
 	mv cuda/FuncBench/apps/pta-noinline/pta-noinline $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-noinline
 	mv cuda/FuncBench/apps/pta-sep/pta-sep $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-sep
+	mv cuda/FuncBench/apps/pta-lto/pta-lto $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-lto
 
 parboil:
 	make data

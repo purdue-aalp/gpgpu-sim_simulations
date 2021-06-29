@@ -212,6 +212,15 @@ lonestargpu-2.0:
 	mv cuda/lonestargpu-2.0/apps/sssp/sssp-wlc $(BINDIR)/$(BINSUBDIR)/lonestar-sssp-wlc
 	mv cuda/lonestargpu-2.0/apps/sssp/sssp-wln $(BINDIR)/$(BINSUBDIR)/lonestar-sssp-wln
 
+FuncBench:
+	$(setenv) make $(make_args) noinline=$(noinline) -C cuda/FuncBench all
+	#mv cuda/FuncBench/apps/pta/pta $(BINDIR)/$(BINSUBDIR)/FuncBench-pta
+	mv cuda/FuncBench/apps/pta-inline/pta-inline $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-inline
+	mv cuda/FuncBench/apps/pta-org/pta-org $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-org
+	mv cuda/FuncBench/apps/pta-noinline/pta-noinline $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-noinline
+	mv cuda/FuncBench/apps/pta-sep/pta-sep $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-sep
+	mv cuda/FuncBench/apps/pta-lto/pta-lto $(BINDIR)/$(BINSUBDIR)/FuncBench-pta-lto
+
 parboil:
 	make data
 	mkdir -p $(BINDIR)/$(BINSUBDIR)/
@@ -344,6 +353,9 @@ clean_parboil:
 
 clean_lonestargpu-2.0:
 	$(setenv) make $(make_args) noinline=$(noinline) -C cuda/lonestargpu-2.0 clean
+
+clean_FuncBench:
+	$(setenv) make $(make_args) noinline=$(noinline) -C cuda/FuncBench clean
 
 clean_ispass-2009:
 	$(SETENV) make $(MAKE_ARGS) clean noinline=$(noinline) -C cuda/ispass-2009/AES

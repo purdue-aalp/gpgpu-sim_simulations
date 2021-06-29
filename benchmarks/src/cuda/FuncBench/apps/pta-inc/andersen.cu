@@ -21,7 +21,7 @@
   Author: Mario Mendez-Lojo
 */
 
-#include "andersen.h"
+#include "device_fun.h"
 #include <thrust/adjacent_difference.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
@@ -37,8 +37,10 @@
 
 using namespace thrust;
 
-__constant__ uint __storeStart__;
-__constant__ uint __loadInvStart__;
+extern __constant__ uint __storeStart__;
+extern __constant__ uint __loadInvStart__;
+//__constant__ uint __storeStart__;
+//__constant__ uint __loadInvStart__;
 
 /**
  *  number of variables of the input program.
@@ -85,15 +87,19 @@ __constant__ uint __numHcdTable__;
 /**
  * Representative array
  */
-__constant__ volatile uint* __rep__; // HAS to be volatile
+extern __constant__ uint* __rep__; // HAS to be volatile
+//__constant__ volatile uint* __rep__; // HAS to be volatile
 
 /**
  * array of elements containing all the edges in the graph.
  */
-__constant__ volatile uint* __edges__; // HAS to be volatile
-__constant__ uint* __graph__;
+extern __constant__ uint* __edges__;
+//__constant__ volatile uint* __edges__; // HAS to be volatile
+extern __constant__ uint* __graph__;
+//__constant__ uint* __graph__;
 
-__constant__  uint* __lock__;
+extern __constant__  uint* __lock__;
+//__constant__  uint* __lock__;
 
 __constant__ uint* __key__;
 __constant__ uint* __val__;
@@ -102,15 +108,18 @@ __device__ uint __numKeysCounter__ = 0;
 __device__ uint __numKeys__;
 __constant__ uint* __currPtsHead__;
 
-__device__ uint __counter__ = 0;
+extern __device__ uint __counter__;
+//__device__ uint __counter__ = 0;
 __device__ uint __max__ = 0;
 __device__ uint __min__ = 0;
 
 __device__ bool __done__ = true;
 __device__ uint __error__;
 
-__device__ uint __worklistIndex0__ = 0;
-__device__ uint __worklistIndex1__ = 1;
+extern __device__ uint __worklistIndex0__;
+extern __device__ uint __worklistIndex1__;
+//__device__ uint __worklistIndex0__ = 0;
+//__device__ uint __worklistIndex1__ = 1;
 
 uint createTime = 0;
 
@@ -120,72 +129,91 @@ __device__ uint  __errorCode__ = 0;
 __device__ uint  __errorLine__ = 0;
 __device__ char* __errorMsg__;
 
-__device__ __noinline__ uint nextPowerOfTwo(uint v) {
+extern __device__ INLINE uint nextPowerOfTwo(uint v);
+/*__device__ INLINE uint nextPowerOfTwo(uint v) {
   return 1U << (uintSize * 8 - __clz(v - 1));
-}
+}*/
 
-__device__ __noinline__ uint __count(int predicate) {
+extern __device__ INLINE uint __count(int predicate);
+/*__device__ INLINE uint __count(int predicate) {
   const uint ballot = __ballot_sync(0xFFFFFFFF, predicate);
   return __popc(ballot);
-}
+}*/
 
-__device__ __noinline__ uint isFirstThreadOfWarp(){
+extern __device__ INLINE uint isFirstThreadOfWarp();
+/*
+__device__ INLINE uint isFirstThreadOfWarp(){
   return !threadIdx.x;
-}
-
-__device__ __noinline__ uint getWarpIdInGrid(){
+}*/
+extern __device__ INLINE uint getWarpIdInGrid();
+/*
+__device__ INLINE uint getWarpIdInGrid(){
   return (blockIdx.x * (blockDim.x * blockDim.y / WARP_SIZE) + threadIdx.y);
-}
+}*/
 
-__device__ __noinline__ uint isFirstWarpOfGrid(){
+extern __device__ INLINE uint isFirstWarpOfGrid();
+/*__device__ INLINE uint isFirstWarpOfGrid(){
   return !(blockIdx.x || threadIdx.y);
-}
+}*/
 
-__device__ __noinline__ uint isFirstWarpOfBlock(){
+extern __device__ INLINE uint isFirstWarpOfBlock();
+/*
+__device__ INLINE uint isFirstWarpOfBlock(){
   return !threadIdx.y;
-}
+}*/
 
-__device__ __noinline__ uint getThreadIdInBlock(){
+extern __device__ INLINE uint getThreadIdInBlock();
+/*__device__ INLINE uint getThreadIdInBlock(){
   return mul32(threadIdx.y) + threadIdx.x;
-}
+}*/
 
-__device__ __noinline__ uint isFirstThreadOfBlock(){
+extern __device__ INLINE uint isFirstThreadOfBlock();
+/*__device__ INLINE uint isFirstThreadOfBlock(){
   return !getThreadIdInBlock();
-}
+}*/
 
-__device__ __noinline__ uint getThreadIdInGrid(){
+extern __device__ INLINE uint getThreadIdInGrid();
+/*__device__ INLINE uint getThreadIdInGrid(){
   return mul32(getWarpIdInGrid()) + threadIdx.x;
-}
+}*/
 
-__device__ __noinline__ uint getThreadsPerBlock() {
+extern __device__ INLINE uint getThreadsPerBlock();
+/*__device__ INLINE uint getThreadsPerBlock() {
   return blockDim.x * blockDim.y;
-}
+}*/
 
-__device__ __noinline__ uint isLastThreadOfBlock(){
+extern __device__ INLINE uint isLastThreadOfBlock(); 
+/*__device__ INLINE uint isLastThreadOfBlock(){
   return getThreadIdInBlock() == getThreadsPerBlock() - 1;
-}
+}*/
 
-__device__ __noinline__ uint getWarpsPerBlock() {
+extern __device__ INLINE uint getWarpsPerBlock();
+/*__device__ INLINE uint getWarpsPerBlock() {
   return blockDim.y;
-}
+}*/
 
-__device__ __noinline__ uint getWarpsPerGrid() {
+extern __device__ INLINE uint getWarpsPerGrid();
+/*__device__ INLINE uint getWarpsPerGrid() {
   return blockDim.y * gridDim.x;
-}
+}*/
 
-__device__ __noinline__ uint getThreadsPerGrid() {
+extern __device__ INLINE uint getThreadsPerGrid(); 
+/*__device__ INLINE uint getThreadsPerGrid() {
   return mul32(getWarpsPerGrid());
-}
+}*/
 
-__device__ __noinline__ uint getBlockIdInGrid(){
+extern __device__ INLINE uint getBlockIdInGrid();
+/*__device__ INLINE uint getBlockIdInGrid(){
   return blockIdx.x;
-}
+}*/
 
-__device__ __noinline__ uint getBlocksPerGrid(){
+extern __device__ INLINE uint getBlocksPerGrid();
+/*__device__ INLINE uint getBlocksPerGrid(){
   return gridDim.x;
-}
+}*/
 
-__device__ void syncAllThreads() {
+extern __device__ INLINE2 void syncAllThreads();
+/*__device__ INLINE2 void syncAllThreads() {
   __syncthreads();
   uint to = getBlocksPerGrid() - 1;
   if (isFirstThreadOfBlock()) {      
@@ -195,65 +223,76 @@ __device__ void syncAllThreads() {
     }
   }
   __syncthreads();
-}
+}*/
 
-__device__ uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i) {
+extern __device__ INLINE2 uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i);
+/*__device__ INLINE2 uint getValAtThread(volatile uint* const _shared_, const uint myVal, const uint i) {
   if (threadIdx.x == i) {
     _shared_[threadIdx.y] = myVal;
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ uint getValAtThread(const uint myVal, const uint i) {
+extern __device__ INLINE2 uint getValAtThread(const uint myVal, const uint i);
+/*__device__ INLINE2 uint getValAtThread(const uint myVal, const uint i) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (threadIdx.x == i) {
     _shared_[threadIdx.y] = myVal;
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
 /*
  * Forward declarations
  */
-__device__ void insertAll(const uint storeIndex, uint* _shared_, uint numFrom, bool sort = true);
+__device__ INLINE2 void insertAll(const uint storeIndex, uint* _shared_, uint numFrom, bool sort = true);
 
 template<uint toRel, uint fromRel>
-__device__ void unionAll(const uint to, uint* _shared_, uint numFrom, bool sort = true);
+__device__ INLINE2 void unionAll(const uint to, uint* _shared_, uint numFrom, bool sort = true);
 
 template<uint toRel, uint fromRel>
-__device__  void map(const uint to, const uint base, const uint myBits, uint* _shared_,
+__device__ INLINE2 void map(const uint to, const uint base, const uint myBits, uint* _shared_,
     uint& numFrom);
 
-__device__ __noinline__ uint mul960(uint num) {
+extern __device__ INLINE uint mul960(uint num);
+/*
+__device__ INLINE uint mul960(uint num) {
   // 960 = 1024 - 64
   return (num << 10) - (num << 6);
-}
+}*/
 
-__device__ __noinline__ uint __graphGet__(const uint row,  const uint col) {
+extern __device__ INLINE uint __graphGet__(const uint row,  const uint col);
+/*__device__ INLINE uint __graphGet__(const uint row,  const uint col) {
   return __edges__[row + col];
-}
+}*/
 
-__device__ __noinline__ uint __graphGet__(const uint pos) {
+extern __device__ INLINE uint __graphGet__(const uint pos); 
+/*__device__ INLINE uint __graphGet__(const uint pos) {
   return __graph__[pos];
-}
+}*/
 
-__device__ __noinline__ void __graphSet__(const uint row,  const uint col, const uint val) {
+extern __device__ INLINE void __graphSet__(const uint row,  const uint col, const uint val);
+/*__device__ INLINE void __graphSet__(const uint row,  const uint col, const uint val) {
   __edges__[row + col] = val;
-}
+}*/
 
-__device__ __noinline__ void __graphSet__(const uint pos, const uint val) {
+extern __device__ INLINE void __graphSet__(const uint pos, const uint val);
+/*__device__ INLINE void __graphSet__(const uint pos, const uint val) {
   __graph__[pos] = val;
-}
+}*/
 
-__device__ __noinline__ uint _sharedGet_(volatile uint* _shared_, uint index, uint offset) {
+extern __device__ INLINE uint _sharedGet_(volatile uint* _shared_, uint index, uint offset);
+/*__device__ INLINE uint _sharedGet_(volatile uint* _shared_, uint index, uint offset) {
   return _shared_[index + offset];
-}
+}*/
 
-__device__ __noinline__ void _sharedSet_(volatile uint* _shared_, uint index, uint offset, uint val) {
+extern __device__ INLINE void _sharedSet_(volatile uint* _shared_, uint index, uint offset, uint val); 
+/*__device__ INLINE void _sharedSet_(volatile uint* _shared_, uint index, uint offset, uint val) {
   _shared_[index + offset] = val;
-}
+}*/
 
-__device__ __noinline__ uint getHeadIndex(uint var, uint rel){
+extern __device__ INLINE uint getHeadIndex(uint var, uint rel);
+/*__device__ INLINE uint getHeadIndex(uint var, uint rel){
   if (rel == NEXT_DIFF_PTS) {
     return NEXT_DIFF_PTS_START - mul32(var);
   }
@@ -271,113 +310,137 @@ __device__ __noinline__ uint getHeadIndex(uint var, uint rel){
   }
   // it has to be LOAD_INV, right?
   return __loadInvStart__ + mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getNextDiffPtsHeadIndex(uint var){
+extern __device__ INLINE uint getNextDiffPtsHeadIndex(uint var);
+/*__device__ INLINE uint getNextDiffPtsHeadIndex(uint var){
     return NEXT_DIFF_PTS_START - mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getCopyInvHeadIndex(uint var){
+extern __device__ INLINE uint getCopyInvHeadIndex(uint var);
+/*__device__ INLINE uint getCopyInvHeadIndex(uint var){
     return COPY_INV_START + mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getCurrDiffPtsHeadIndex(uint var){
+extern __device__ INLINE uint getCurrDiffPtsHeadIndex(uint var); 
+/*__device__ INLINE uint getCurrDiffPtsHeadIndex(uint var){
     return CURR_DIFF_PTS_START - mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getPtsHeadIndex(uint var){
+extern __device__ INLINE uint getPtsHeadIndex(uint var); 
+/*__device__ INLINE uint getPtsHeadIndex(uint var){
     return mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getStoreHeadIndex(uint var){
+extern __device__ INLINE uint getStoreHeadIndex(uint var); 
+/*__device__ INLINE uint getStoreHeadIndex(uint var){
     return __storeStart__ + mul32(var);
-}
+}*/
 
-__device__ __noinline__ uint getLoadInvHeadIndex(uint var){
+extern __device__ INLINE uint getLoadInvHeadIndex(uint var); 
+/*__device__ INLINE uint getLoadInvHeadIndex(uint var){
     return __loadInvStart__ + mul32(var);
-}
+}*/
 
-__device__ __noinline__ int isEmpty(uint var, uint rel) {
+extern __device__ INLINE int isEmpty(uint var, uint rel);
+/*__device__ INLINE int isEmpty(uint var, uint rel) {
   const uint headIndex = getHeadIndex(var, rel);
   return __graphGet__(headIndex, BASE) == NIL;
-}
+}*/
 
 /**
  * Mask that tells whether the variables contained in an element have size > offset
  * There is one such mask per offset.
  * stored in compressed format
  */
-__constant__ uint* __offsetMask__;
+extern __constant__ uint* __offsetMask__; 
+//__constant__ uint* __offsetMask__;
 
 /**
  * Number of rows needed to represent the mask of ONE offset.
  * = ceil(numObjectVars / DST_PER_ELEMENT), since non-object pointers have size 1.
  */
-__constant__ uint __offsetMaskRowsPerOffset__; 
+extern __constant__ uint __offsetMaskRowsPerOffset__;
+//__constant__ uint __offsetMaskRowsPerOffset__; 
 
-__device__ __noinline__ uint __offsetMaskGet__(const uint base, const uint col, const uint offset) {
+extern __device__ INLINE uint __offsetMaskGet__(const uint base, const uint col, const uint offset); 
+/*__device__ INLINE uint __offsetMaskGet__(const uint base, const uint col, const uint offset) {
   return __offsetMask__[mul32((offset - 1) * __offsetMaskRowsPerOffset__ + base) + col];
-}
+}*/
 
-__device__ __noinline__ void __offsetMaskSet__(const uint base, const uint col, const uint offset,
+extern __device__ INLINE void __offsetMaskSet__(const uint base, const uint col, const uint offset,
+  const uint val);
+/*__device__ INLINE void __offsetMaskSet__(const uint base, const uint col, const uint offset,
     const uint val) {
   __offsetMask__[mul32((offset - 1) * __offsetMaskRowsPerOffset__ + base) + col] = val;
-}
+}*/
 
 /**
  * Mask that tells whether the pts-to of an element changed.
  * the BASE and NEXT words are always equal to 0
  * stored in compressed format
  */
-__constant__ uint* __diffPtsMask__;
+extern __constant__ uint* __diffPtsMask__;
+//__constant__ uint* __diffPtsMask__;
 
-__device__ __noinline__ uint __diffPtsMaskGet__(const uint base, const uint col) {
+extern __device__ INLINE uint __diffPtsMaskGet__(const uint base, const uint col); 
+/*__device__ INLINE uint __diffPtsMaskGet__(const uint base, const uint col) {
   return __diffPtsMask__[mul32(base) + col];
-}
+}*/
 
-__device__ __noinline__ void __diffPtsMaskSet__(const uint base, const uint col, const uint val) {
+extern __device__ INLINE void __diffPtsMaskSet__(const uint base, const uint col, const uint val);
+/*__device__ INLINE void __diffPtsMaskSet__(const uint base, const uint col, const uint val) {
   __diffPtsMask__[mul32(base) + col] = val;
-}
+}*/
 
 /**
  * Index of the next free element in the corresponding free list.
  * The index is given in words, not bytes or number of elements.
  */
-__device__ uint __ptsFreeList__,__nextDiffPtsFreeList__, __currDiffPtsFreeList__, __otherFreeList__;
+extern __device__ uint __ptsFreeList__,__nextDiffPtsFreeList__, __currDiffPtsFreeList__, __otherFreeList__;
+//__device__ uint __ptsFreeList__,__nextDiffPtsFreeList__, __currDiffPtsFreeList__, __otherFreeList__;
 
-__device__ __noinline__ uint mallocPts(uint size = ELEMENT_WIDTH) {
+extern __device__ INLINE uint mallocPts(uint size = ELEMENT_WIDTH);
+/*
+__device__ INLINE uint mallocPts(uint size = ELEMENT_WIDTH) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(&__ptsFreeList__, size);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ __noinline__ uint mallocNextDiffPts() {
+extern __device__ INLINE uint mallocNextDiffPts();
+/*
+__device__ INLINE uint mallocNextDiffPts() {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicSub(&__nextDiffPtsFreeList__, ELEMENT_WIDTH);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ __noinline__ uint mallocCurrDiffPts() {
+extern __device__ INLINE uint mallocCurrDiffPts();
+/*__device__ INLINE uint mallocCurrDiffPts() {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicSub(&__currDiffPtsFreeList__, ELEMENT_WIDTH);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ __noinline__ uint mallocOther() {
+extern __device__ INLINE uint mallocOther();
+/*
+__device__ INLINE uint mallocOther() {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK]; 
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(&__otherFreeList__, ELEMENT_WIDTH);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ __noinline__ uint mallocIn(uint rel) {
+extern __device__ INLINE uint mallocIn(uint rel);
+/*__device__ INLINE uint mallocIn(uint rel) {
   if (rel == NEXT_DIFF_PTS) {
     return mallocNextDiffPts();
   }
@@ -392,7 +455,7 @@ __device__ __noinline__ uint mallocIn(uint rel) {
   }
   //printf("WTF! (%u)", rel);
   return 0;
-}
+}*/
 
 /**
  * Get and increment the current worklist index
@@ -401,21 +464,24 @@ __device__ __noinline__ uint mallocIn(uint rel) {
  * @return Worklist index 'i'. All the work items in the [i, i + delta) interval are guaranteed
  * to be assigned to the current warp.
  */
-__device__ __noinline__ uint getAndIncrement(const uint delta) {
+
+extern __device__ INLINE uint getAndIncrement(const uint delta);
+/*__device__ INLINE uint getAndIncrement(const uint delta) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(&__worklistIndex0__, delta);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
-__device__ __noinline__ uint getAndIncrement(uint* counter, uint delta) {
+extern __device__ INLINE uint getAndIncrement(uint* counter, uint delta);
+/*__device__ INLINE uint getAndIncrement(uint* counter, uint delta) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _shared_[threadIdx.y] = atomicAdd(counter, delta);
   }
   return _shared_[threadIdx.y];
-}
+}*/
 
 /**
  * Lock a given variable 
@@ -423,33 +489,39 @@ __device__ __noinline__ uint getAndIncrement(uint* counter, uint delta) {
  * @param var Id of the variable
  * @return A non-zero value if the operation succeeded
  */
-__device__ __noinline__ uint lock(const uint var) {
+extern __device__ INLINE uint lock(const uint var);
+/*__device__ INLINE uint lock(const uint var) {
   return __any_sync(0xFFFFFFFF,isFirstThreadOfWarp() && (atomicCAS(__lock__ + var, UNLOCKED, LOCKED) 
       == UNLOCKED));
-}
+}*/
 
 /**
  * Unlock a variable
  * Granularity: warp or thread
  * @param var Id of the variable
  */
-__device__ __noinline__ void unlock(const uint var) {
+extern __device__ INLINE void unlock(const uint var);
+/*__device__ INLINE void unlock(const uint var) {
   __lock__[var] = UNLOCKED;
-}
+}*/
 
-__device__ __noinline__ int isRep(const uint var) {
+extern __device__ INLINE int isRep(const uint var);
+/*__device__ INLINE int isRep(const uint var) {
   return __rep__[var] == var;
-}
+}*/
 
-__device__ __noinline__ void setRep(const uint var, const uint rep) {
+extern __device__ INLINE void setRep(const uint var, const uint rep);
+/*__device__ INLINE void setRep(const uint var, const uint rep) {
   __rep__[var] = rep;
-}
+}*/
 
-__device__ __noinline__ uint getRep(const uint var) {
+extern __device__ INLINE uint getRep(const uint var);
+/*__device__ INLINE uint getRep(const uint var) {
   return __rep__[var];
-}
+}*/
 
-__device__ __noinline__ uint getRepRec(const uint var) {
+extern __device__ INLINE uint getRepRec(const uint var);
+/*__device__ INLINE uint getRepRec(const uint var) {
   uint rep = var;
   uint repRep = __rep__[rep];
   while (repRep != rep) {
@@ -457,9 +529,9 @@ __device__ __noinline__ uint getRepRec(const uint var) {
     repRep = __rep__[rep];
   } 
   return rep;
-}
+}*/
 
-__device__ ulongint recordStartTime() {
+__device__ INLINE2 ulongint recordStartTime() {
   __shared__ volatile ulongint _ret_[MAX_WARPS_PER_BLOCK];
   if (isFirstThreadOfWarp()) {
     _ret_[threadIdx.y] = clock();
@@ -467,7 +539,7 @@ __device__ ulongint recordStartTime() {
   return _ret_[threadIdx.y];
 }
 
-__device__ void recordElapsedTime(ulongint start){
+__device__ INLINE2 void recordElapsedTime(ulongint start){
   if (isFirstThreadOfWarp()) {
     ulongint delta;
     ulongint end = clock();
@@ -481,23 +553,26 @@ __device__ void recordElapsedTime(ulongint start){
   }
 }
 
-__device__ __noinline__ uint decodeWord(const uint base, const uint word, const uint bits) {
+extern __device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits);
+/*__device__ INLINE uint decodeWord(const uint base, const uint word, const uint bits) {
   uint ret = mul960(base) + mul32(word);
   return (isBitActive(bits, threadIdx.x)) ? __rep__[ret + threadIdx.x] : NIL;
-}
+}*/
 
-__device__ __noinline__ void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
+extern __device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir);
+/*__device__ INLINE void swap(volatile uint* const keyA, volatile uint* const keyB, const uint dir) {
   uint n1 = *keyA;
   uint n2 = *keyB;
   if ((n1 < n2) != dir) {
     *keyA = n2;
     *keyB = n1;
   }
-}
+}*/
 
 // Bitonic Sort, in ascending order using one WARP
 // precondition: size of _shared_ has to be a power of 2
-__device__ __noinline__ void bitonicSort(volatile uint* const _shared_, const uint to) {
+extern __device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to);
+/*__device__ INLINE void bitonicSort(volatile uint* const _shared_, const uint to) {
   for (int size = 2; size <= to; size <<= 1) {
     for (int stride = size / 2; stride > 0; stride >>= 1) {
       for (int id = threadIdx.x; id < (to / 2); id += WARP_SIZE) {
@@ -508,9 +583,10 @@ __device__ __noinline__ void bitonicSort(volatile uint* const _shared_, const ui
       }
     }
   }
-}
+}*/
 
-__device__ void blockBitonicSort(volatile uint* _shared_, uint to) {
+extern __device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to);
+/*__device__ INLINE2 void blockBitonicSort(volatile uint* _shared_, uint to) {
   uint idInBlock = getThreadIdInBlock();
   for (int size = 2; size <= to; size <<= 1) {
     for (int stride = size / 2; stride > 0; stride >>= 1) {
@@ -523,7 +599,7 @@ __device__ void blockBitonicSort(volatile uint* _shared_, uint to) {
       }
     }
   }
-}
+}*/
 
 /**
  * Sort an array in ascending order.
@@ -531,7 +607,8 @@ __device__ void blockBitonicSort(volatile uint* _shared_, uint to) {
  * @param _shared_ list of integers
  * @param to size of the sublist we want to process
  */
-__device__ void blockSort(volatile uint* _shared_, uint to) {
+extern __device__ INLINE2 void blockSort(volatile uint* _shared_, uint to);
+/*__device__ INLINE2 void blockSort(volatile uint* _shared_, uint to) {
   uint size = max(nextPowerOfTwo(to), 32);
   uint id = getThreadIdInBlock();
   for (int i = to + id; i < size; i += getThreadsPerBlock()) {
@@ -539,7 +616,7 @@ __device__ void blockSort(volatile uint* _shared_, uint to) {
   }
   blockBitonicSort(_shared_, size);  
   __syncthreads();
-}
+}*/
 
 /**
  * Remove duplicates on a sorted sequence, equivalent to Thrust 'unique' function but uses one warp.
@@ -553,7 +630,8 @@ __device__ void blockSort(volatile uint* _shared_, uint to) {
  * @param to size of the sublist we want to process
  * @return number of unique elements in the input.
  */
-__device__  __noinline__ uint unique(volatile uint* const _shared_, uint to) {
+extern __device__ INLINE uint unique(volatile uint* const _shared_, uint to);
+/*__device__ INLINE uint unique(volatile uint* const _shared_, uint to) {
   uint startPos = 0;
   uint myMask = (1 << (threadIdx.x + 1)) - 1;
   for (int id = threadIdx.x; id < to; id += WARP_SIZE) {
@@ -565,9 +643,10 @@ __device__  __noinline__ uint unique(volatile uint* const _shared_, uint to) {
     startPos += __popc(fresh);
   }
   return startPos;
-}
+}*/
 
-__device__ uint removeDuplicates(volatile uint* const _shared_, const uint to) {
+extern __device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to);
+/*__device__ INLINE2 uint removeDuplicates(volatile uint* const _shared_, const uint to) {
   const uint size = max(nextPowerOfTwo(to), 32);
   for (int i = to + threadIdx.x; i < size; i += WARP_SIZE) {
     _shared_[i] = NIL;
@@ -575,9 +654,9 @@ __device__ uint removeDuplicates(volatile uint* const _shared_, const uint to) {
   bitonicSort(_shared_, size);
   uint ret = unique(_shared_, size);
   return (size > to) ? ret - 1 : ret;
-}
+}*/
 
-__device__ void print(uint* m, const uint size) {
+__device__ INLINE2 void print(uint* m, const uint size) {
   if (!isFirstThreadOfWarp())
     return;
   //printf("[");
@@ -590,7 +669,7 @@ __device__ void print(uint* m, const uint size) {
   //printf ("]");
 }
 
-__device__ void print(int* m, const uint size) {
+__device__ INLINE2 void print(int* m, const uint size) {
   if (!isFirstThreadOfWarp())
     return;
   //printf("[");
@@ -607,7 +686,7 @@ __device__ void print(int* m, const uint size) {
 __device__ volatile uint __printBuffer__[PRINT_BUFFER_SIZE];
 
  // TODO: assumes we print with 1 block and 1 warp...
-__device__ void printElementAsSet(const uint base, volatile uint myBits, bool& first) {
+__device__ INLINE2 void printElementAsSet(const uint base, volatile uint myBits, bool& first) {
   for (int i = 0; i < BASE; i++) {
     uint word = getValAtThread(myBits, i);
     uint myDst = decodeWord(base, i, word);
@@ -625,7 +704,7 @@ __device__ void printElementAsSet(const uint base, volatile uint myBits, bool& f
   }
 }
 
-__device__ void printDiffPtsMask() {
+__device__ INLINE2 void printDiffPtsMask() {
   uint numVars = __numVars__;
   if (isFirstThreadOfWarp()) {
     //printf("DIFF_PTS_MASK: [");
@@ -644,7 +723,7 @@ __global__ void __printDiffPtsMask() {
   printDiffPtsMask();
 }
 
-__device__ void printOffsetMask(uint numObjectsVars, uint offset) {
+__device__ INLINE2 void printOffsetMask(uint numObjectsVars, uint offset) {
   if (isFirstThreadOfWarp()) {
     //printf("MASK for offset %u: [", offset);
   }
@@ -658,7 +737,7 @@ __device__ void printOffsetMask(uint numObjectsVars, uint offset) {
     ;//printf("]\n");
 }
 
-__device__ void printOffsetMasks(uint numObjectsVars, uint maxOffset) {
+__device__ INLINE2 void printOffsetMasks(uint numObjectsVars, uint maxOffset) {
   if (!isFirstWarpOfGrid()) {
     return;
   }
@@ -671,7 +750,7 @@ __global__ void __printOffsetMasks(uint numObjectsVars, uint maxOffset) {
   printOffsetMasks(numObjectsVars, maxOffset);
 }
 
-__device__ void printElementRec(uint index) {
+__device__ INLINE2 void printElementRec(uint index) {
   volatile uint myBits = __graphGet__(index, threadIdx.x);
   if (__all_sync(0xFFFFFFFF,myBits == NIL)) {
     return;
@@ -685,7 +764,7 @@ __device__ void printElementRec(uint index) {
   }
 }
 
-__device__ void printSharedElementRec(uint* volatile _shared_, uint index) {
+__device__ INLINE2 void printSharedElementRec(uint* volatile _shared_, uint index) {
   volatile uint myBits = _sharedGet_(_shared_, index, threadIdx.x);
   if (__all_sync(0xFFFFFFFF,myBits == NIL)) {
     return;
@@ -699,7 +778,7 @@ __device__ void printSharedElementRec(uint* volatile _shared_, uint index) {
   }
 }
 
-__device__  void accumulate(const uint base, uint myBits, uint& numFrom, uint rel) {
+__device__ INLINE2 void accumulate(const uint base, uint myBits, uint& numFrom, uint rel) {
   uint nonEmpty = __ballot_sync(0xFFFFFFFF, myBits && threadIdx.x < BASE);
   while (nonEmpty) {
     uint pos = __ffs(nonEmpty) - 1;
@@ -718,7 +797,7 @@ __device__  void accumulate(const uint base, uint myBits, uint& numFrom, uint re
   }
 }
 
-__device__ void printEdges(const uint src, const uint rel, const uint printEmptySets) { 
+__device__ INLINE2 void printEdges(const uint src, const uint rel, const uint printEmptySets) { 
   if (isEmpty(src, rel) && !printEmptySets) {
     return;
   }
@@ -756,14 +835,14 @@ __device__ void printEdges(const uint src, const uint rel, const uint printEmpty
   }
 }
 
-__device__ void printEdgesOf(const uint src, int rel) {
+__device__ INLINE2 void printEdgesOf(const uint src, int rel) {
   if (isFirstThreadOfWarp()) {
     //printf("%s of ", getName(rel));
   }
   printEdges(src, rel, 1);
 }
 
-__device__ void printEdgesStartingAt(uint index, int rel) {
+__device__ INLINE2 void printEdgesStartingAt(uint index, int rel) {
   if (isFirstThreadOfWarp()) {
     //printf("%s @ %u => [", getName(rel), index);
   }
@@ -797,7 +876,7 @@ __device__ void printEdgesStartingAt(uint index, int rel) {
   }
 }
 
-__device__ void printEdgesOf(uint src) {
+__device__ INLINE2 void printEdgesOf(uint src) {
   for (int i = 0; i <= LAST_DYNAMIC_REL; i++) {
     printEdgesOf(src, i);
   }
@@ -811,7 +890,7 @@ __global__ void __printEdgesOf(uint src) {
   printEdgesOf(src);
 }
 
-__device__ void printEdges(int rel) {
+__device__ INLINE2 void printEdges(int rel) {
   if (isFirstThreadOfWarp()) {
     //printf("%s edges:\n", getName(rel));
   }
@@ -824,7 +903,7 @@ __global__ void __printEdges(int rel) {
   printEdges(rel);
 }
 
-__device__ void printGepEdges() {
+__device__ INLINE2 void printGepEdges() {
   uint numVarsGepInv = __numGepInv__;
   if (isFirstThreadOfWarp()) {
     //printf("GEP_INV edges:\n");
@@ -846,7 +925,7 @@ __global__ void __printGepEdges() {
   printGepEdges();
 }
 
-__device__ void printConstraints(uint* __constraints__, const uint numConstraints) { 
+__device__ INLINE2 void printConstraints(uint* __constraints__, const uint numConstraints) { 
   volatile __shared__ uint _shared_[WARP_SIZE];
   for (int i = 0; i < numConstraints * 2; i += WARP_SIZE) {
     _shared_[threadIdx.x] = __constraints__[i + threadIdx.x];
@@ -863,7 +942,7 @@ __device__ void printConstraints(uint* __constraints__, const uint numConstraint
   }
 }
 
-__device__ int checkForErrors(uint var, uint rel) {
+__device__ INLINE2 int checkForErrors(uint var, uint rel) {
   uint index = getHeadIndex(var, rel);
   uint lastBase = 0;
   uint first = 1;
@@ -922,7 +1001,8 @@ __global__ void checkForErrors(uint rel) {
   }
 }
 
-__device__ uint hashCode(uint index) {
+extern __device__ INLINE2 uint hashCode(uint index);
+/*__device__ INLINE2 uint hashCode(uint index) {
   __shared__ uint _sh_[DEF_THREADS_PER_BLOCK];
   volatile uint* _shared_ = &_sh_[threadIdx.y * WARP_SIZE];
   uint myRet = 0;
@@ -954,9 +1034,10 @@ __device__ uint hashCode(uint index) {
     _shared_[threadIdx.x] ^= _shared_[threadIdx.x + WARP_SIZE / 8];
   }
   return _shared_[0] ^ _shared_[1] ^ _shared_[2] ^ _shared_[3];
-}
+}*/
 
-__device__ uint equal(uint index1, uint index2) {
+extern __device__ INLINE2 uint equal(uint index1, uint index2);
+/*__device__ INLINE2 uint equal(uint index1, uint index2) {
   uint bits1 = __graphGet__(index1 + threadIdx.x);
   uint bits2 = __graphGet__(index2 + threadIdx.x);
   while (__all_sync(0xFFFFFFFF,(threadIdx.x == NEXT) || (bits1 == bits2))) {
@@ -969,9 +1050,9 @@ __device__ uint equal(uint index1, uint index2) {
     bits2 = __graphGet__(index2 + threadIdx.x);
   }
   return 0;
-}
+}*/
 
-__device__ uint size(uint var, uint rel) {
+__device__ INLINE2 uint size(uint var, uint rel) {
   __shared__ uint _sh_[DEF_THREADS_PER_BLOCK];
   volatile uint* _shared_ = &_sh_[threadIdx.y * WARP_SIZE];
   if (isEmpty(var, rel)) {
@@ -993,7 +1074,7 @@ __device__ uint size(uint var, uint rel) {
   return _shared_[0];
 }
 
-__device__ void unionToCopyInv(const uint to, const uint fromIndex, uint* const _shared_, 
+__device__ INLINE2 void unionToCopyInv(const uint to, const uint fromIndex, uint* const _shared_, 
     bool applyCopy = true) {
   uint toIndex = getCopyInvHeadIndex(to);
   if (fromIndex == toIndex) {
@@ -1085,7 +1166,8 @@ __device__ void unionToCopyInv(const uint to, const uint fromIndex, uint* const 
   }
 }
 
-__device__ void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel) {  
+extern __device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel);
+/*__device__ INLINE2 void clone(uint toIndex, uint fromBits, uint fromNext, const uint toRel) {  
   while (1) {
     uint newIndex = fromNext == NIL ? NIL : mallocIn(toRel);    
     uint val = threadIdx.x == NEXT ? newIndex : fromBits;
@@ -1097,10 +1179,11 @@ __device__ void clone(uint toIndex, uint fromBits, uint fromNext, const uint toR
     fromBits = __graphGet__(fromNext + threadIdx.x);
     fromNext = __graphGet__(fromNext + NEXT);        
   } 
-}
+}*/
 
 // toRel = any non-static relationship
-__device__ void unionG2G(const uint to, const uint toRel, const uint fromIndex) {
+extern __device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fromIndex);
+/*__device__ INLINE2 void unionG2G(const uint to, const uint toRel, const uint fromIndex) {
   uint toIndex = getHeadIndex(to, toRel);
   uint fromBits = __graphGet__(fromIndex + threadIdx.x); 
   uint fromBase = __graphGet__(fromIndex + BASE);
@@ -1164,12 +1247,12 @@ __device__ void unionG2G(const uint to, const uint toRel, const uint fromIndex) 
       toNext = __graphGet__(toNext + NEXT);      
     }
   } 
-}
+}*/
 
 // WATCH OUT: ASSUMES fromRel==toRel
 // like unionTo, but reusing the elements of 'from' (introduces sharing of elements)
 // toRel = any non-static relationship
-__device__  void unionG2GRecycling(const uint to, const uint toRel, uint fromIndex) {
+__device__ INLINE2  void unionG2GRecycling(const uint to, const uint toRel, uint fromIndex) {
   uint fromBits = __graphGet__(fromIndex, threadIdx.x);
   uint fromBase = __graphGet__(fromIndex, BASE);
   if (fromBase == NIL) {
@@ -1238,7 +1321,7 @@ __device__  void unionG2GRecycling(const uint to, const uint toRel, uint fromInd
   } while (fromIndex != NIL);
 }
 
-__device__ uint addVirtualElement(uint index, const uint fromBase, const uint fromBits, 
+__device__ INLINE2 uint addVirtualElement(uint index, const uint fromBase, const uint fromBits, 
     const uint toRel) {
   for (;;) {
     uint toBits = __graphGet__(index + threadIdx.x);
@@ -1278,7 +1361,7 @@ __device__ uint addVirtualElement(uint index, const uint fromBase, const uint fr
   }
 }
 
-__device__ uint insert(const uint index, const uint var, const int rel) {  
+__device__ INLINE2 uint insert(const uint index, const uint var, const int rel) {  
   uint base = BASE_OF(var);
   uint word = WORD_OF(var);
   uint bit = BIT_OF(var);
@@ -1293,7 +1376,8 @@ __device__ uint insert(const uint index, const uint var, const int rel) {
   return addVirtualElement(index, base, myBits, rel);
 }
 
-__device__ __noinline__ uint resetWorklistIndex() {
+extern __device__ INLINE uint resetWorklistIndex();
+/*__device__ INLINE uint resetWorklistIndex() {
   __syncthreads();
   uint numBlocks = getBlocksPerGrid();
   if (isFirstThreadOfBlock() && atomicInc(&__counter__, numBlocks - 1) == (numBlocks - 1)) {
@@ -1302,7 +1386,7 @@ __device__ __noinline__ uint resetWorklistIndex() {
     return 1;
   }  
   return 0;
-}
+}*/
 
 __global__ void addEdges(uint* __key__, uint* __keyAux__, uint* __val__, const uint to,  uint rel) {
   __shared__ uint _sh_[WARPS_PER_BLOCK(DEF_THREADS_PER_BLOCK) * WARP_SIZE];
@@ -1333,7 +1417,7 @@ __global__ void addEdges(uint* __key__, uint* __keyAux__, uint* __val__, const u
 }
 
 template<uint toRel, uint fromRel>
-__device__  __noinline__ void unionAll(const uint to, uint* const _shared_, uint numFrom, bool sort) {
+__device__  INLINE void unionAll(const uint to, uint* const _shared_, uint numFrom, bool sort) {
   if (numFrom > 1 && sort) {
     numFrom = removeDuplicates(_shared_, numFrom);
   }
@@ -1351,7 +1435,7 @@ __device__  __noinline__ void unionAll(const uint to, uint* const _shared_, uint
 }
 
 template<uint toRel, uint fromRel>
-__device__  void map(uint to, const uint base, const uint myBits, uint* const _shared_, 
+__device__ INLINE2  void map(uint to, const uint base, const uint myBits, uint* const _shared_, 
     uint& numFrom) {
   uint nonEmpty = __ballot_sync(0xFFFFFFFF, myBits) & LT_BASE;
   const uint threadMask = 1 << threadIdx.x;
@@ -1385,7 +1469,7 @@ __device__  void map(uint to, const uint base, const uint myBits, uint* const _s
 }
 
 template<uint firstRel, uint secondRel, uint thirdRel>
-__device__ void apply(const uint src, uint* const _shared_) {
+__device__ INLINE2 void apply(const uint src, uint* const _shared_) {
   uint numFrom = 0;
   uint index = getHeadIndex(src, firstRel);
   do {
@@ -1405,7 +1489,7 @@ __device__ void apply(const uint src, uint* const _shared_) {
   }
 }
 
-__device__ void insertAll(const uint src, uint* const _shared_, uint numFrom, const bool sort) {
+__device__ INLINE2 void insertAll(const uint src, uint* const _shared_, uint numFrom, const bool sort) {
   if (numFrom > 1 && sort) {
     numFrom = removeDuplicates(_shared_, numFrom);
   }
@@ -1421,7 +1505,7 @@ __device__ void insertAll(const uint src, uint* const _shared_, uint numFrom, co
   }
 }
 
-__device__ void store2storeInv(const uint src, uint* const _shared_) {
+__device__ INLINE2 void store2storeInv(const uint src, uint* const _shared_) {
   uint currDiffPtsIndex = getCurrDiffPtsHeadIndex(src);
   uint numFrom = 0;
   do {
@@ -1468,7 +1552,7 @@ __global__ void copyInv_loadInv_store2storeInv() {
   }  
 }
 
-__device__ void warpStoreInv(const uint i, uint* const _pending_, uint* _numPending_) {
+__device__ INLINE2 void warpStoreInv(const uint i, uint* const _pending_, uint* _numPending_) {
   uint src = __key__[i];
   uint startIndex = __keyAux__[i];
   uint end = __keyAux__[i + 1]; 
@@ -1498,7 +1582,7 @@ __device__ void warpStoreInv(const uint i, uint* const _pending_, uint* _numPend
   }
 }
 
-__device__ void blockStoreInv(uint src, uint* const _dummyVars_, volatile uint* _warpInfo_, 
+__device__ INLINE2 void blockStoreInv(uint src, uint* const _dummyVars_, volatile uint* _warpInfo_, 
     uint& _numPending_) {
   uint* _shared_ = _dummyVars_ + WARPS_PER_BLOCK(STORE_INV_THREADS_PER_BLOCK) * 4 + 
       threadIdx.y * (WARP_SIZE + DECODE_VECTOR_SIZE + 1);
@@ -1600,7 +1684,7 @@ __global__ void storeInv() {
   resetWorklistIndex();  
 }
 
-__device__ void shift(const uint base, const uint bits, const uint offset,
+__device__ INLINE2 void shift(const uint base, const uint bits, const uint offset,
     volatile uint* _shifted_) {
   _shifted_[threadIdx.x] = 0;
   _shifted_[threadIdx.x + WARP_SIZE] = 0;
@@ -1618,7 +1702,7 @@ __device__ void shift(const uint base, const uint bits, const uint offset,
   _shifted_[BASE + WARP_SIZE * 2] = base + 2;
 }
 
-__device__ void applyGepInvRule(uint x, const uint y, const uint offset, volatile uint* _shared_) {
+__device__ INLINE2 void applyGepInvRule(uint x, const uint y, const uint offset, volatile uint* _shared_) {
   uint yIndex = getCurrDiffPtsHeadIndex(y);
   uint myBits = __graphGet__(yIndex, threadIdx.x);
   if (__all_sync(0xFFFFFFFF,myBits == NIL)) {
@@ -1663,7 +1747,7 @@ __global__ void gepInv() {
   }  
 }
 
-__device__ void cloneAndLink(const uint var, const uint ptsIndex, uint& currDiffPtsIndex, 
+__device__ INLINE2 void cloneAndLink(const uint var, const uint ptsIndex, uint& currDiffPtsIndex, 
     const uint diffPtsBits, const uint diffPtsNext) {
   clone(ptsIndex, diffPtsBits, diffPtsNext, PTS);
   if (currDiffPtsIndex != NIL) {
@@ -1684,7 +1768,7 @@ __device__ void cloneAndLink(const uint var, const uint ptsIndex, uint& currDiff
  * @param var ID of the variable
  * @return true if new pts edges have been added to this variable
  */ 
-__device__ bool updatePtsAndDiffPts(const uint var) {
+__device__ INLINE2 bool updatePtsAndDiffPts(const uint var) {
   const uint diffPtsHeadIndex = getNextDiffPtsHeadIndex(var);
   uint diffPtsBits = __graphGet__(diffPtsHeadIndex + threadIdx.x);
   uint diffPtsBase = __graphGet__(diffPtsHeadIndex + BASE);
@@ -1831,14 +1915,14 @@ __global__ void createOffsetMasks(int numObjectVars, uint maxOffset) {
   }
 }
 
-__device__ uint lockToVar(uint lock) {
+__device__ INLINE2 uint lockToVar(uint lock) {
   if ((lock < VAR(0)) || (lock >= LOCKED)) {
     return lock;
   }
   return lock - VAR(0);
 }
 
-__device__ void merge(const uint var1, const uint var2, const uint rep) {
+__device__ INLINE2 void merge(const uint var1, const uint var2, const uint rep) {
   //if (isFirstThreadOfWarp()) //printf("%u <= %u\n", var1, var2);
   uint headIndex = getPtsHeadIndex(var2);
   unionG2GRecycling(var1, PTS, headIndex);
@@ -1867,7 +1951,7 @@ __device__ void merge(const uint var1, const uint var2, const uint rep) {
  * @param _list_ Pointer-equivalent variables
  * @param _listSize_ Number of variables to be processed
  */
-__device__ void mergeCycle(const uint* const _list_, const uint _listSize_) {
+__device__ INLINE2 void mergeCycle(const uint* const _list_, const uint _listSize_) {
   __shared__ uint _counter_;
   if (!_listSize_) {
     __syncthreads();
@@ -1914,7 +1998,7 @@ __device__ void mergeCycle(const uint* const _list_, const uint _listSize_) {
 }
 
 // to be executed by one thread
-__device__ uint lockVarRep(uint& var) {
+__device__ INLINE2 uint lockVarRep(uint& var) {
   while (1) {
     uint rep = getRepRec(var);
     uint old = atomicCAS(__lock__ + rep, UNLOCKED, VAR(blockIdx.x));      
@@ -1948,7 +2032,7 @@ __device__ uint lockVarRep(uint& var) {
  * @param _nextVar_ List where to add all the variables we could not lock
  * @param _nextVarSize_ Number of variables we could not lock
  */
-__device__ void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_, 
+__device__ INLINE2 void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const _nextVar_, 
     uint* _nextVarSize_) {
   __shared__ uint _count_;
   _count_ = 0;
@@ -1975,7 +2059,7 @@ __device__ void lockVars(uint* const _currVar_, uint& _currVarSize_, uint* const
 }
 
 // to be executed by one WARP
-__device__ uint lockPtr(uint ptr) {
+__device__ INLINE2 uint lockPtr(uint ptr) {
   __shared__ volatile uint _shared_[MAX_WARPS_PER_BLOCK];
   uint intended = PTR(getBlockIdInGrid());
   if (isFirstThreadOfWarp()) {    
@@ -1993,7 +2077,7 @@ __device__ uint lockPtr(uint ptr) {
  * @param _nextVar_ List of variables we could not lock
  * @param _nextVarSize_ Number of variables we could not lock
  */
-__device__ void decodeCurrPts(const uint x, uint* const _currVar_, uint* const _currVarSize_, 
+__device__ INLINE2 void decodeCurrPts(const uint x, uint* const _currVar_, uint* const _currVarSize_, 
     uint* const _nextVar_, uint* const _nextVarSize_) {
   uint index = getCurrDiffPtsHeadIndex(x);
   do {
@@ -2050,7 +2134,7 @@ __device__ void decodeCurrPts(const uint x, uint* const _currVar_, uint* const _
  * Lock a list of (pointer) variables and their points-to sets
  * Granularity: block 
  */
-__device__ void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_, 
+__device__ INLINE2 void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const _nextPtr_, 
     uint* _nextPtrSize_, uint* const _currVar_, uint* _currVarSize_, uint* const _nextVar_, 
     uint* _nextVarSize_) {
   const uint warpsPerBlock = getWarpsPerBlock();  
@@ -2070,7 +2154,7 @@ __device__ void lockPtrs(uint* const _currPtr_, uint& _currPtrSize_, uint* const
   __syncthreads();   
 }
 
-__device__ void unlockPtrs(const uint* const _list_, const uint _listSize_) {
+__device__ INLINE2 void unlockPtrs(const uint* const _list_, const uint _listSize_) {
   int init = getThreadIdInBlock();
   int inc = getThreadsPerBlock();
   for (int i = init; i < _listSize_; i += inc) {
@@ -2391,7 +2475,7 @@ __host__ void printVector(const Vector& v, uint size) {
 }
 
 __host__ void initializeEdges(uint* &constraintsName, uint &constraintNumber, uint rel) {
-  dim3 dimInitialize(WARP_SIZE, getThreadsPerBlock(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimInitialize(WARP_SIZE, getThreadsPerBlockHost(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
   uint* constraints;
   uint numConstraints;
   cudaSafeCall(cudaMemcpyFromSymbol(&constraints, constraintsName, sizeof(uint*)));
@@ -2414,7 +2498,7 @@ extern "C" void createGraph(const uint numObjectVars, const uint maxOffset) {
   setbuf(stdout, NULL);
   printf("[dev]  Creating graph and masks out of constraints...");
   const uint startTime = clock();
-  dim3 dim(WARP_SIZE, getThreadsPerBlock(DEF_THREADS_PER_BLOCK)/ WARP_SIZE);
+  dim3 dim(WARP_SIZE, getThreadsPerBlockHost(DEF_THREADS_PER_BLOCK)/ WARP_SIZE);
 
   initialize<<<getBlocks(), dim>>>();
   checkKernelErrors("ERROR at initialize");
@@ -2481,12 +2565,12 @@ extern "C" uint andersen(uint numVars) {
   uint copyInvTime = 0;
   uint storeInvTime = 0;
   uint gepInvTime = 0;
-  dim3 dim512(WARP_SIZE, getThreadsPerBlock(512) / WARP_SIZE);
-  dim3 dimUpdate2(WARP_SIZE, getThreadsPerBlock(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimHcd(WARP_SIZE, getThreadsPerBlock(HCD_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimCopy(WARP_SIZE, getThreadsPerBlock(COPY_INV_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimStore(WARP_SIZE, getThreadsPerBlock(STORE_INV_THREADS_PER_BLOCK) / WARP_SIZE);
-  dim3 dimGep(WARP_SIZE, getThreadsPerBlock(GEP_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dim512(WARP_SIZE, getThreadsPerBlockHost(512) / WARP_SIZE);
+  dim3 dimUpdate2(WARP_SIZE, getThreadsPerBlockHost(UPDATE_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimHcd(WARP_SIZE, getThreadsPerBlockHost(HCD_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimCopy(WARP_SIZE, getThreadsPerBlockHost(COPY_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimStore(WARP_SIZE, getThreadsPerBlockHost(STORE_INV_THREADS_PER_BLOCK) / WARP_SIZE);
+  dim3 dimGep(WARP_SIZE, getThreadsPerBlockHost(GEP_INV_THREADS_PER_BLOCK) / WARP_SIZE);
  
   device_vector<uint> key(MAX_HASH_SIZE);
   uint* ptr = raw_pointer_cast(&key[0]);
